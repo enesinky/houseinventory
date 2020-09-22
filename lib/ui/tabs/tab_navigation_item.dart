@@ -1,11 +1,10 @@
-import 'package:covid19_mask/inventory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'search.dart';
-import 'dashboard.dart';
-import 'settings.dart';
-import 'inventory.dart';
+import '../../pages/search/search.dart';
+import '../../pages/dashboard/dashboard.dart';
+import '../../pages/settings/settings.dart';
+import '../../pages/inventory/inventory_list.dart';
 
 class TabNavigationItem {
   final Widget page;

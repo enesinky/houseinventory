@@ -1,23 +1,23 @@
-import 'package:covid19_mask/ui/setting_list_item.dart';
+import 'package:houseinventory/ui/setting_list_item.dart';
 
-import 'ui/appbar.dart';
+import '../../ui/appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-// TO-DO:
-//
-
 
 class SettingsPage extends StatefulWidget {
+  static const String route = '/Settings';
+
   @override
   _SettingsPageState createState() => _SettingsPageState();
 
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  static Route<dynamic> route() => MaterialPageRoute(
-        builder: (context) => SettingsPage(),
-      );
+
+  // static Route<dynamic> route() => MaterialPageRoute(
+  //       builder: (context) => SettingsPage(),
+  //     );
 
   @override
   Widget build(BuildContext context) {

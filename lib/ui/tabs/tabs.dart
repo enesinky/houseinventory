@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 
 class TabsPage extends StatefulWidget {
+  static const String route = '/';
   @override
   _TabsPageState createState() => _TabsPageState();
 }

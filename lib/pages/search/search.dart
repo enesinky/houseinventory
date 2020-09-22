@@ -1,12 +1,9 @@
-import 'ui/appbar.dart';
+import '../../ui/appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatelessWidget {
-
-  static Route<dynamic> route() => MaterialPageRoute(
-    builder: (context) => SearchPage(),
-  );
+  static const String route = '/Search';
 
   Widget build(BuildContext context) {
 

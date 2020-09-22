@@ -1,11 +1,13 @@
-import 'ui/appbar.dart';
+import '../../ui/appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Dashboard extends StatelessWidget {
-  static Route<dynamic> route() => MaterialPageRoute(
-    builder: (context) => Dashboard(),
-  );
+  static const String route = '/Dashboard';
+
+  // static Route<dynamic> route() => MaterialPageRoute(
+  //   builder: (context) => Dashboard(),
+  // );
 
   @override
   Widget build(BuildContext context) {

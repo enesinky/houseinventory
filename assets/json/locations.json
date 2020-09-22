@@ -1,0 +1,22 @@
+[
+    {
+      "name": "Bedroom",
+      "id": 1
+    },
+    {
+      "name": "Basement",
+      "id": 2
+    },
+    {
+      "name": "Kitchen",
+      "id": 3
+    },
+    {
+      "name": "Small Room Sofa",
+      "id": 4
+    },
+    {
+      "name": "My Super Room",
+      "id": 5
+    }
+]

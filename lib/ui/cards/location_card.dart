@@ -1,4 +1,4 @@
-import 'package:houseinventory/pages/inventory/inventory_location.dart';
+import 'package:houseinventory/pages/inventory/item_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

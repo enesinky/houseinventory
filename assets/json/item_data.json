@@ -1,0 +1,76 @@
+[
+  {
+    "name": "Bedroom",
+    "id": 1,
+    "items": [
+      {
+        "name": "Bed",
+        "id": 19
+      },
+      {
+        "name": "Wardrobe",
+        "id": 20
+      }
+    ]
+  },
+  {
+    "name": "Basement",
+    "id": 2,
+    "items": [
+      {
+        "name": "Empty Boxes",
+        "id": 18
+      },
+      {
+        "name": "Painting Materials",
+        "id": 17
+      },
+      {
+        "name": "Scaffold",
+        "id": 16
+      }
+    ]
+  },
+  {
+    "name": "Kitchen",
+    "id": 3,
+    "items": [
+      {
+        "name": "Refrigerator",
+        "id": 21
+      },
+      {
+        "name": "Table",
+        "id": 22
+      }
+    ]
+  },
+  {
+    "name": "Small Room Sofa",
+    "id": 4,
+    "items": [
+      {
+        "name": "Sheet",
+        "id": 31
+      },
+      {
+        "name": "Pillow",
+        "id": 32
+      }
+    ]
+  },
+  {
+    "name": "My Super Room",
+    "id": 5,
+    "items": [
+      {
+        "name": "My Super item",
+        "id": 32
+      },
+      {
+        "name": "Keyboard",
+        "id": 33
+      }
+    ]
+  }
+]

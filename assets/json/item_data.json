@@ -42,6 +42,90 @@
       {
         "name": "Table",
         "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
+      },
+      {
+        "name": "Table",
+        "id": 22
       }
     ]
   },
@@ -63,14 +147,7 @@
     "name": "My Super Room",
     "id": 5,
     "items": [
-      {
-        "name": "My Super item",
-        "id": 32
-      },
-      {
-        "name": "Keyboard",
-        "id": 33
-      }
+
     ]
   }
 ]

@@ -18,7 +18,6 @@ class ItemViewPage extends StatelessWidget {
     itemLocation = ProcessData.locationData
         .firstWhere((element) => (this.locationId == element.id));
       if(itemLocation.items.length > 0) {
-          itemBoxes.add(SearchBox());
         itemLocation.items.forEach((Item item) {
           itemBoxes.add(ItemBox(item.name));
         });
@@ -35,11 +34,30 @@ class ItemViewPage extends StatelessWidget {
         body: Container(
           margin: EdgeInsets.all(20),
           child: Column(
-            children: this.itemBoxes,
-            // children: [
-            //   SearchBox(),
-            //
-            // ],
+            children: [
+              SearchBox(),
+              itemLocation.items.length > 0 ? Expanded(
+                    child: SingleChildScrollView(
+                      child: SizedBox(
+                        height: itemLocation.items.length * 92.0, // or something simular :)
+                        child: new Column(
+                        mainAxisSize: MainAxisSize.max,
+                        children: <Widget>[
+                          new Expanded(
+                            child: Column(
+                              children: this.itemBoxes,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+        ),
+              ) : Container(
+                alignment: Alignment.center,
+                margin: EdgeInsets.only(top: 30),
+                child: Text('No item yet.', style: TextStyle(fontSize: 17),),
+              ),
+            ],
           ),
         ));
   }

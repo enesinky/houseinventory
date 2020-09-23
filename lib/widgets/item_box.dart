@@ -9,6 +9,7 @@ class ItemBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 70,
       margin: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
       child: InkWell(
         splashColor: Colors.amberAccent,

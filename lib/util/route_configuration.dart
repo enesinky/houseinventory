@@ -3,7 +3,7 @@ import 'package:houseinventory/pages/inventory/location_view.dart';
 import 'package:houseinventory/pages/inventory/item_view.dart';
 import 'package:houseinventory/pages/search/search.dart';
 import 'package:houseinventory/pages/settings/settings.dart';
-import 'package:houseinventory/ui/tabs/tabs.dart';
+import 'package:houseinventory/pages/home/tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +14,7 @@ class RouteConfiguration {
   static List<Path> paths = [
     Path(
       r'^/Location/([0-9]+)$',
-          (context, match) => InventoryLocationPage(int.parse(match)),
+          (context, match) => ItemViewPage(int.parse(match)),
     ),
     Path(
       r'^' + TabsPage.route,
@@ -25,8 +25,8 @@ class RouteConfiguration {
           (context, match) => Dashboard(),
     ),
     Path(
-      r'^' + InventoryPage.route,
-          (context, match) => InventoryPage(),
+      r'^' + LocationViewPage.route,
+          (context, match) => LocationViewPage(),
     ),
     Path(
       r'^' + SearchPage.route,

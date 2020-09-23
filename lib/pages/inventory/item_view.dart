@@ -1,11 +1,11 @@
-import 'package:houseinventory/ui/appbar.dart';
+import 'file:///D:/AndroidStudioProjects/house_inventory/lib/widgets/appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class InventoryLocationPage extends StatelessWidget {
+class ItemViewPage extends StatelessWidget {
     static const String route = '/Location';
     final int locationId;
-    InventoryLocationPage(this.locationId);
+    ItemViewPage(this.locationId);
 
   @override
     Widget build(BuildContext context) {

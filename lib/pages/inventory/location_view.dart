@@ -1,10 +1,10 @@
 import 'package:houseinventory/data/process_data.dart';
 
-  import '../../ui/appbar.dart';
+  import '../../widgets/appbar.dart';
   import 'package:flutter/cupertino.dart';
   import 'package:flutter/material.dart';
 
-  class InventoryPage extends StatelessWidget {
+  class LocationViewPage extends StatelessWidget {
     static const String route = '/Inventory_List';
 
   @override

@@ -1,7 +1,7 @@
 import 'package:houseinventory/util/route_configuration.dart';
 
 import 'data/process_data.dart';
-import 'ui/tabs/tabs.dart';
+import 'pages/home/tabs.dart';
 import 'util/shared_prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

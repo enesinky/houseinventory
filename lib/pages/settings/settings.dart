@@ -1,6 +1,6 @@
-import 'package:houseinventory/ui/setting_list_item.dart';
+import 'file:///D:/AndroidStudioProjects/house_inventory/lib/widgets/setting_list_item.dart';
 
-import '../../ui/appbar.dart';
+import '../../widgets/appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

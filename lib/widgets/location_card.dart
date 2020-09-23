@@ -20,7 +20,7 @@ class LocationCard extends StatelessWidget {
         splashColor: Colors.redAccent.withAlpha(90),
         onTap: () {
           print('Card tapped: ' + name + '. Location ID: ' + locationId.toString());
-          var navigateUrl = InventoryLocationPage.route + '/' + locationId.toString();
+          var navigateUrl = ItemViewPage.route + '/' + locationId.toString();
           Navigator.pushNamed(context, navigateUrl);
         },
         child: Container(

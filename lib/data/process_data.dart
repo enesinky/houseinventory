@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:houseinventory/model/item.dart';
 import 'package:houseinventory/model/item_location.dart';
-import 'package:houseinventory/ui/cards/location_card.dart';
+import 'package:houseinventory/widgets/location_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 

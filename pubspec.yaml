@@ -24,6 +24,7 @@ dependencies:
   flutter:
     sdk: flutter
   shared_preferences: ^0.5.6
+  build_runner:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -44,7 +45,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/json/locations.json
+    - assets/json/item_data.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

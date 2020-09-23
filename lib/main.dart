@@ -1,6 +1,6 @@
 import 'package:houseinventory/util/route_configuration.dart';
 
-import 'data/inventory_data.dart';
+import 'data/process_data.dart';
 import 'ui/tabs/tabs.dart';
 import 'util/shared_prefs.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await sharedPrefs.init();
-  await locationData.init();
+  await processData.init();
   runApp(
     MyApp(),
   );

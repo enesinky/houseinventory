@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 class LocationCard extends StatelessWidget {
   final String name;
   final int itemCount;
-  final int locationId;
+  final int _locationId;
 
-  LocationCard(this.name, this.itemCount, this.locationId);
+  LocationCard(this.name, this.itemCount, this._locationId);
 
   @override
   Widget build(BuildContext context) {
@@ -19,8 +19,8 @@ class LocationCard extends StatelessWidget {
       child: InkWell(
         splashColor: Colors.redAccent.withAlpha(90),
         onTap: () {
-          print('Card tapped: ' + name + '. Location ID: ' + locationId.toString());
-          var navigateUrl = ItemViewPage.route + '/' + locationId.toString();
+          //print('Card tapped: ' + name + '. Location ID: ' + locationId.toString());
+          var navigateUrl = ItemViewPage.route + '/' + _locationId.toString();
           Navigator.pushNamed(context, navigateUrl);
         },
         child: Container(

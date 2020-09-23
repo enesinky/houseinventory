@@ -1,4 +1,4 @@
-import 'package:houseinventory/data/inventory_data.dart';
+import 'package:houseinventory/data/process_data.dart';
 
   import '../../ui/appbar.dart';
   import 'package:flutter/cupertino.dart';
@@ -22,15 +22,8 @@ import 'package:houseinventory/data/inventory_data.dart';
                       ListView(
                           scrollDirection: Axis.vertical,
                           //padding: EdgeInsets.all(16),
-                          children: LocationData.locationDataCards
-                          // <Widget>[
-                          //   LocationCard('Bedroom', 12, 1),
-                          //   LocationCard('Kitchen', 105, 2),
-                          //   LocationCard('Bed Base', 16, 3),
-                          //   LocationCard('TV Unit', 2, 4),
-                          //   LocationCard('Basement', 55, 5),
-                          //   LocationCard('Small Room Sofa', 7, 6)
-                          // ]
+                          children: ProcessData.locationDataCards
+
                       ))
                   ],
               ))

@@ -7,7 +7,6 @@ class InventoryLocationPage extends StatelessWidget {
     final int locationId;
     InventoryLocationPage(this.locationId);
 
-
   @override
     Widget build(BuildContext context) {
     return Scaffold(

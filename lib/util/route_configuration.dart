@@ -1,6 +1,6 @@
 import 'package:houseinventory/pages/dashboard/dashboard.dart';
-import 'package:houseinventory/pages/inventory/inventory_list.dart';
-import 'package:houseinventory/pages/inventory/inventory_location.dart';
+import 'package:houseinventory/pages/inventory/location_view.dart';
+import 'package:houseinventory/pages/inventory/item_view.dart';
 import 'package:houseinventory/pages/search/search.dart';
 import 'package:houseinventory/pages/settings/settings.dart';
 import 'package:houseinventory/ui/tabs/tabs.dart';

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../pages/search/search.dart';
 import '../../pages/dashboard/dashboard.dart';
 import '../../pages/settings/settings.dart';
-import '../../pages/inventory/inventory_list.dart';
+import '../../pages/inventory/location_view.dart';
 
 class TabNavigationItem {
   final Widget page;

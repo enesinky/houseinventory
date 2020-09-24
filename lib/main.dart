@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'House Inventory',
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.white54,
+        scaffoldBackgroundColor: Color(0xffECE9CA),
         primarySwatch: Colors.amber,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),

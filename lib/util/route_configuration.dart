@@ -1,6 +1,7 @@
 import 'package:houseinventory/pages/dashboard/dashboard.dart';
-import 'package:houseinventory/pages/inventory/location_view.dart';
+import 'package:houseinventory/pages/inventory/inventory_view.dart';
 import 'package:houseinventory/pages/inventory/item_view.dart';
+import 'package:houseinventory/pages/inventory/location_view.dart';
 import 'package:houseinventory/pages/search/search.dart';
 import 'package:houseinventory/pages/settings/settings.dart';
 import 'package:houseinventory/pages/home/tabs.dart';
@@ -13,8 +14,12 @@ class RouteConfiguration {
 
   static List<Path> paths = [
     Path(
-      r'^/Location/([0-9]+)$',
-          (context, match) => ItemViewPage(int.parse(match)),
+      r'^\/Location\/([\0-9]+)$',
+          (context, List matches) => LocationViewPage(int.parse(matches[0])),
+    ),
+    Path(
+      r'^\/Item\/([0-9]+)\/([0-9]+)$',
+          (context, List matches) => ItemViewPage(int.parse(matches[0]), int.parse(matches[1])),
     ),
     Path(
       r'^' + TabsPage.route,
@@ -25,8 +30,8 @@ class RouteConfiguration {
           (context, match) => Dashboard(),
     ),
     Path(
-      r'^' + LocationViewPage.route,
-          (context, match) => LocationViewPage(),
+      r'^' + InventoryViewPage.route,
+          (context, match) => InventoryViewPage(),
     ),
     Path(
       r'^' + SearchPage.route,
@@ -43,16 +48,19 @@ class RouteConfiguration {
     for (Path path in paths) {
       final regExpPattern = RegExp(path.pattern);
       if (regExpPattern.hasMatch(settings.name)) {
-        final firstMatch = regExpPattern.firstMatch(settings.name);
-        final match = (firstMatch.groupCount == 1) ? firstMatch.group(1) : null;
+        Iterable matchInstances = regExpPattern.allMatches(settings.name);
+        List<String> matches = List<String>();
+        matchInstances.forEach((match) {
+              for(var i=1; i <= match.groupCount; i++) {
+                matches.add(match.group(i).toString());
+              }
+        });
         return MaterialPageRoute<void>(
-          builder: (context) => path.builder(context, match),
+          builder: (context) => path.builder(context, matches),
           settings: settings,
         );
       }
     }
-
-    // If no match was found, we let [WidgetsApp.onUnknownRoute] handle it.
     return null;
   }
 }

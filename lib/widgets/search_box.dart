@@ -57,7 +57,7 @@ class SearchBox extends StatelessWidget {
                 padding: EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                      colors: [Colors.white70, Colors.amberAccent]),
+                      colors: [Colors.white70, Color(0xffA8BCBD)]),
                   borderRadius: BorderRadius.all(Radius.circular(20)),
                 ),
               )),

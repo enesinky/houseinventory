@@ -1,4 +1,4 @@
-import 'package:houseinventory/pages/inventory/item_view.dart';
+import 'package:houseinventory/pages/inventory/location_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -20,7 +20,7 @@ class LocationCard extends StatelessWidget {
         splashColor: Colors.redAccent.withAlpha(90),
         onTap: () {
           //print('Card tapped: ' + name + '. Location ID: ' + locationId.toString());
-          var navigateUrl = ItemViewPage.route + '/' + _locationId.toString();
+          var navigateUrl = LocationViewPage.route + '/' + _locationId.toString();
           Navigator.pushNamed(context, navigateUrl);
         },
         child: Container(

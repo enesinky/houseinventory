@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:houseinventory/data/process_data.dart';
 import 'package:houseinventory/model/item.dart';
 import 'package:houseinventory/widgets/appbar.dart';
 
@@ -11,14 +12,16 @@ class ItemViewPage extends StatelessWidget {
   Item item;
 
   ItemViewPage(this.locationId, this.itemId) {
-    // itemLocation = ProcessData.locationData
-    //     .firstWhere((element) => (this.locationId == element.id))
+    item = ProcessData.itemsData
+        .firstWhere((element) => (this.locationId == element.id))
+        .items
+        .firstWhere((element) => (this.itemId == element.id));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: CustomAppBar('test'),
+        appBar: CustomAppBar(item.name),
         body: Container(
           margin: EdgeInsets.all(20),
           child: Column(

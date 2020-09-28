@@ -13,9 +13,9 @@ class LocationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.only(top: 10, left: 20, right: 20, bottom: 10),
-      elevation: 12,
+      elevation: 5,
       borderOnForeground: true,
-      color: Colors.blueGrey,
+      color: Colors.blueGrey.shade300,
       child: InkWell(
         splashColor: Colors.redAccent.withAlpha(90),
         onTap: () {
@@ -26,7 +26,7 @@ class LocationCard extends StatelessWidget {
         child: Container(
           alignment: Alignment.center,
           //width: MediaQuery.of(context).size.width * 0.9,
-          height: 80,
+          height: 70,
           /*decoration: BoxDecoration(
             color: Colors.blueGrey,
             // boxShadow: [
@@ -44,7 +44,7 @@ class LocationCard extends StatelessWidget {
               Text(name,
                   style: TextStyle(
                       color: Colors.white,
-                      fontSize: 25,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold)),
               Text(
                 itemCount.toString() + ' items.',

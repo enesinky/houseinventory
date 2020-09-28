@@ -69,7 +69,7 @@ class ProcessData {
     }
   }
 
-  static List<ItemLocation> get locationData => _itemsData;
+  static List<ItemLocation> get itemsData => _itemsData;
 
   static List<Widget> get locationDataCards => _locationCards;
 }

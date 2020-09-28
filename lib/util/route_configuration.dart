@@ -7,6 +7,8 @@ import 'package:houseinventory/pages/settings/settings.dart';
 import 'package:houseinventory/pages/home/tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:houseinventory/pages/start/forgot_password.dart';
+import 'package:houseinventory/pages/start/start.dart';
 
 import 'path.dart';
 
@@ -20,6 +22,14 @@ class RouteConfiguration {
     Path(
       r'^\/Item\/([0-9]+)\/([0-9]+)$',
           (context, List matches) => ItemViewPage(int.parse(matches[0]), int.parse(matches[1])),
+    ),
+    Path(
+      r'^' + StartPage.route,
+          (context, match) => StartPage(),
+    ),
+    Path(
+      r'^' + ForgotPasswordPage.route,
+          (context, match) => ForgotPasswordPage(),
     ),
     Path(
       r'^' + TabsPage.route,

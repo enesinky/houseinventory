@@ -26,7 +26,12 @@ class TabNavigationItem {
     TabNavigationItem(
       page: InventoryViewPage(),
       icon: Icon(Icons.view_list),
-      title: Text("Inventory List"),
+      title: Text("Inventory"),
+    ),
+    TabNavigationItem(
+      page: SearchPage(),
+      icon: Icon(Icons.camera_alt),
+      title: Text("Camera"),
     ),
     TabNavigationItem(
       page: SearchPage(),

@@ -1,21 +1,37 @@
+import 'package:houseinventory/pages/dashboard/dashboard.dart';
+import 'package:houseinventory/util/login_handler.dart';
 import '../../widgets/tab_navigation_item.dart';
 import 'package:flutter/material.dart';
 
 
+
 class TabsPage extends StatefulWidget {
-  static const String route = '/';
+  static const String route = Dashboard.route;
   @override
   _TabsPageState createState() => _TabsPageState();
+
 }
 
 class _TabsPageState extends State<TabsPage> {
-  int _currentIndex = 1;
+  int currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    currentIndex = 0;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    currentIndex = 0;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex,
+        index: currentIndex,
         children: [
           for (final tabItem in TabNavigationItem.items) tabItem.page,
         ],
@@ -24,8 +40,8 @@ class _TabsPageState extends State<TabsPage> {
         elevation: 14.0,
         fixedColor: Colors.black,
         backgroundColor: Colors.amber,
-        currentIndex: _currentIndex,
-        onTap: (int index) => setState(() => _currentIndex = index),
+        currentIndex: currentIndex,
+        onTap: (int index) => setState(() => currentIndex = index),
         iconSize: 32,
         selectedFontSize: 13,
         unselectedFontSize: 13,

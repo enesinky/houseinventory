@@ -11,7 +11,7 @@ class CustomLoadingDialog {
         children: [
           new CircularProgressIndicator(),
           SizedBox(height: 24,),
-          new Text("Updating Inventory", style: TextStyle(
+          new Text("Loading", style: TextStyle(
               color: Colors.black54,
               fontSize: 15
           ),),

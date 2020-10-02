@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:houseinventory/widgets/appbar.dart';
+import 'package:houseinventory/util/contants.dart';
+import 'package:houseinventory/util/validator.dart';
+import 'package:http/http.dart' as http;
 
 class ForgotPasswordPage extends StatefulWidget {
   static const String route = '/ForgotPassword';
@@ -11,43 +15,112 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
+  final _forgotPasswordFormKey = GlobalKey<FormState>();
   TextEditingController forgotPassword = TextEditingController();
+  var isLoading = false;
+  var _isSent = false;
 
+  Future<http.Response> requestForgotPassword() {
+    return http.post(
+      Constants.apiURL + '/api/forgot-password',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        "email":  forgotPassword.text,
+      }),
+    ).timeout(
+        const Duration(seconds: 5), onTimeout: () {
+      return null;
+    });
+  }
+  requestForgotPasswordHandler(response) {
+    if(response != null && response.statusCode == 200) {
+        print('yes sent email if exists.');
+        setState(() {
+          isLoading = !isLoading;
+          _isSent = true;
+        });
+        forgotPassword.clear();
+    }
+    else {
+      // another error occured
+      setState(() {
+        _isSent = false;
+      });
+      _someErrorHappenedAlert();
+    }
+  }
 
-  Widget customTextField(String hint, IconData icon, TextEditingController controller, bool obscure) {
-    return TextField(
-      textCapitalization: TextCapitalization.words,
-      textAlignVertical: TextAlignVertical.center,
-      textAlign: TextAlign.left,
-      controller: controller,
-      obscureText: obscure,
-      autofocus: false,
-      maxLines: 1,
-      autocorrect: true,
-      textInputAction: TextInputAction.next,
-      onSubmitted: (_) => FocusScope.of(context).nextFocus(),
-      cursorColor: Colors.amber,
-      style: TextStyle(fontSize: 17, color: Colors.white,),
-      decoration: InputDecoration(
-          enabled: true,
-          prefixIcon: Icon(icon, color: Colors.amber,size: 22,),
-          focusColor: Colors.amber,
-          contentPadding: EdgeInsets.all(10),
-          border: UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.amber, width: 2),
+  Future<void> _someErrorHappenedAlert() async {
+    setState(() {
+      isLoading = !isLoading;
+    });
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Something Went Wrong!', style: TextStyle(
+            fontSize: 16,
+          )),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('An error occured during request.'),
+                Text('Please check your connection.'),
+              ],
+            ),
           ),
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.amber, width: 2),
-          ),
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.white54)
-      ),
+          actionsPadding: EdgeInsets.symmetric(horizontal: 30),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK', style: TextStyle(color: Colors.blue),),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
-
   Widget build(BuildContext context) {
 
+    var divider = Container(
+      margin: EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: <Widget>[
+        Expanded(
+          child: new Container(
+              margin: const EdgeInsets.only(left: 10.0, right: 20.0),
+              child: Divider(
+                color: Colors.white24,
+                height: 36,
+                thickness: 0.7,
+              )),
+        ),
+        Text("or", style: TextStyle(color: Colors.white24, fontSize: 14),),
+        Expanded(
+          child: new Container(
+              margin: const EdgeInsets.only(left: 20.0, right: 10.0),
+              child: Divider(
+                color: Colors.white24,
+                height: 36,
+                thickness: 0.7,
+              )),
+        ),
+      ]),
+    );
+    var message = Container(
+      alignment: Alignment.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.done, size: 35, color: Colors.amber.withOpacity(0.5)),
+          Text('An email with instructions was sent', style: TextStyle(color: Colors.amber.withOpacity(0.5), fontSize: 15),),
+        ],),
+    );
     var forgotPasswordPage = Container(
       alignment: Alignment.center,
       margin: EdgeInsets.symmetric(horizontal: 30, vertical: 0),
@@ -58,92 +131,119 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              child: Column(
-                  children: <Widget> [
-                    SizedBox(height: 100,),
-                    Text('House.Inventory'.toUpperCase(), style: TextStyle(
-                        fontSize: 30,
-                        color: Colors.amber
-                    ),),
-                    SizedBox(height: 60,),
-                    customTextField("Enter your Email", Icons.email, forgotPassword, false),
-                    SizedBox(height: 30,),
-                    Container(
-                      height: 40,
-                      margin: EdgeInsets.symmetric(horizontal: 0, vertical: 4),
-                      child: FlatButton(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          //side: BorderSide(color: Colors.red)
+              child: AbsorbPointer(
+                absorbing: isLoading,
+                child: Form(
+                  key: _forgotPasswordFormKey,
+                  child: Column(
+                      children: <Widget> [
+                        SizedBox(height: 100,),
+                        Text('House.Inventory'.toUpperCase(), style: TextStyle(
+                            fontSize: 30,
+                            color: Colors.amber
+                        ),),
+                        SizedBox(height: 40,),
+                        _isSent ? message : SizedBox(),
+                        SizedBox(height: 20,),
+                        TextFormField(
+                          textCapitalization: TextCapitalization.words,
+                          textAlignVertical: TextAlignVertical.center,
+                          textAlign: TextAlign.left,
+                          controller: forgotPassword,
+                          obscureText: false,
+                          autofocus: false,
+                          maxLines: 1,
+                          autocorrect: true,
+                          textInputAction: TextInputAction.next,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (input) {
+                            if(Validator.isValidEmail(input.toString())) {
+                              return null;
+                            } else {
+                              return "Please enter a valid email.";
+                            }
+                          },
+                          //onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                          cursorColor: Colors.amber,
+                          style: TextStyle(fontSize: 16, color: Colors.white,),
+                          decoration: InputDecoration(
+                              enabled: true,
+                              prefixIcon: Icon(Icons.email, color: Colors.amber,size: 18,),
+                              focusColor: Colors.amber,
+                              contentPadding: EdgeInsets.all(10),
+                              border: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.amber, width: 2),
+                              ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.amber, width: 2),
+                              ),
+                              hintText: "Email Address",
+                              hintStyle: TextStyle(color: Colors.white54)
+                          ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Icon(Icons.email, color: Colors.white70.withOpacity(0.4), size: 22),
-                            Text('Reset Password', style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 20,
-                            ),),
-                            SizedBox(width: 26,),
-                          ],
+                        SizedBox(height: 30,),
+                        Container(
+                          height: 36,
+                          margin: EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+                          child: FlatButton(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              //side: BorderSide(color: Colors.red)
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                isLoading ? SizedBox(height:22, width:22,child: CircularProgressIndicator(strokeWidth: 4,)) : Text('Reset Password', style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                ),),
+
+                              ],
+                            ),
+                            color: Color(0xff5E5E2A),
+                            onPressed: () {
+                              if (_forgotPasswordFormKey.currentState.validate()) {
+                                setState(() {
+                                  isLoading = !isLoading;
+                                });
+                                requestForgotPassword().then((response) => (requestForgotPasswordHandler(response)));
+                              }
+                            },
+                          ),
                         ),
-                        color: Color(0xff5E5E2A),
-                        onPressed: () {
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 30,),
-                    Container(
-                      child: Row(children: <Widget>[
-                        Expanded(
-                          child: new Container(
-                              margin: const EdgeInsets.only(left: 10.0, right: 20.0),
-                              child: Divider(
-                                color: Colors.white70,
-                                height: 36,
-                                thickness: 0.5,
-                              )),
-                        ),
-                        Text("or", style: TextStyle(color: Colors.white70, fontSize: 16),),
-                        Expanded(
-                          child: new Container(
-                              margin: const EdgeInsets.only(left: 20.0, right: 10.0),
-                              child: Divider(
-                                color: Colors.white70,
-                                height: 36,
-                                thickness: 0.5,
-                              )),
+                        SizedBox(height: 30,),
+                        divider,
+                        Container(
+                            margin: EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                InkWell(
+                                  onTap: () => {
+                                    Navigator.pop(context),
+                                  },
+                                  splashColor: Colors.amber,
+                                  child: Container(
+                                    margin: EdgeInsets.symmetric(vertical: 12),
+                                    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                                    child: Text('Cancel', style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 15,
+                                    )),
+                                  ),
+                                )
+                              ],
+                            )
                         ),
                       ]),
-                    ),
-                    Container(
-                        margin: EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            InkWell(
-                              onTap: () => {
-                                Navigator.pop(context),
-                              },
-                              splashColor: Colors.amber,
-                              child: Container(
-                                margin: EdgeInsets.symmetric(vertical: 12),
-                                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                                child: Text('Cancel', style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 15,
-                                )),
-                              ),
-                            )
-                          ],
-                        )
-                    ),
-                  ]),
+                ),
+              ),
             ),
           )
         ],
       ),
     );
+
 
     return Scaffold(
         backgroundColor: Colors.transparent,

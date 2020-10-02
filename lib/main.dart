@@ -1,4 +1,5 @@
 import 'package:houseinventory/pages/start/start.dart';
+import 'package:houseinventory/util/login_handler.dart';
 import 'package:houseinventory/util/route_configuration.dart';
 
 import 'data/process_data.dart';
@@ -11,18 +12,22 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await sharedPrefs.init();
   await processData.init();
+  var isLoggedIn = await loginHandler.init();
   runApp(
-    MyApp(),
+    MyApp(isLoggedIn),
   );
 }
 
 class MyApp extends StatelessWidget {
+  var isLoggedIn;
+  MyApp(this.isLoggedIn);
 
-  var user;
 
   @override
   Widget build(BuildContext context) {
+
     SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+
     return MaterialApp(
       title: 'House Inventory',
       theme: ThemeData(
@@ -30,9 +35,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.amber,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      //home: TabsPage(),
       debugShowCheckedModeBanner: false,
-      initialRoute: user == null ? StartPage.route : TabsPage.route,
+      initialRoute: isLoggedIn ? TabsPage.route : StartPage.route,
       onGenerateRoute: RouteConfiguration.onGenerateRoute,
     );
   }

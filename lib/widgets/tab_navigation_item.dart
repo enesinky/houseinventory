@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../pages/search/search.dart';
-import '../../pages/dashboard/dashboard.dart';
-import '../../pages/settings/settings.dart';
-import '../../pages/inventory/inventory_list.dart';
+import '../pages/search/search.dart';
+import '../pages/dashboard/dashboard.dart';
+import '../pages/settings/settings.dart';
+import '../pages/inventory/inventory_view.dart';
 
 class TabNavigationItem {
   final Widget page;
@@ -24,9 +24,14 @@ class TabNavigationItem {
       title: Text("Dashboard"),
     ),
     TabNavigationItem(
-      page: InventoryPage(),
+      page: InventoryViewPage(),
       icon: Icon(Icons.view_list),
-      title: Text("Inventory List"),
+      title: Text("Inventory"),
+    ),
+    TabNavigationItem(
+      page: SearchPage(),
+      icon: Icon(Icons.camera_alt),
+      title: Text("Camera"),
     ),
     TabNavigationItem(
       page: SearchPage(),

@@ -20,6 +20,13 @@ class SharedPrefs {
   void setInt(String sharedPrefParam, int value) {
     _sharedPrefs.setInt(sharedPrefParam, value);
   }
+
+  String getString(String sharedPrefParam) {
+    return _sharedPrefs.getString(sharedPrefParam);
+  }
+  void setString(String sharedPrefParam, String value) {
+    _sharedPrefs.setString(sharedPrefParam, value);
+  }
 }
 
 final sharedPrefs = SharedPrefs();

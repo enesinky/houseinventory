@@ -1,6 +1,6 @@
-import 'package:houseinventory/ui/setting_list_item.dart';
+import 'file:///D:/AndroidStudioProjects/house_inventory/lib/widgets/setting_list_item.dart';
 
-import '../../ui/appbar.dart';
+import '../../widgets/appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -33,8 +33,8 @@ class _SettingsPageState extends State<SettingsPage> {
               children: <Widget>[
                 SettingGroupLabel('General Settings'),
           SettingListItemBool('Enable Push Notifications', null, 'push_notifications', true),
-          SettingListItemBool('Test Setting #1', 'This is a test setting', 'test_1', true),
-          SettingListItemBool('Test Setting #2', 'This is a test setting', 'test_2', true),
+          SettingListItemBool('List Newer Items First', 'Order items from newest to oldest.', 'test_1', true),
+          SettingListItemBool('Colorize Items Randomly', 'Item colors will change each time.', 'test_2', true),
                 SettingGroupLabel('Dashboard Settings'),
           SettingListItemSelect('Language', 'Select the language of application', 'test_select', ['English', 'Turkish', 'German'], 2),
           SettingListItemBool('Test Setting #4', 'This is a test setting', 'test_4', false),

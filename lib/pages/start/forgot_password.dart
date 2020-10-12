@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:houseinventory/pages/start/start.dart';
 import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/util/validator.dart';
 import 'package:http/http.dart' as http;
@@ -88,30 +89,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   Widget build(BuildContext context) {
 
-    var divider = Container(
-      margin: EdgeInsets.symmetric(vertical: 6),
-      child: Row(children: <Widget>[
-        Expanded(
-          child: new Container(
-              margin: const EdgeInsets.only(left: 10.0, right: 20.0),
-              child: Divider(
-                color: Colors.white24,
-                height: 36,
-                thickness: 0.7,
-              )),
-        ),
-        Text("or", style: TextStyle(color: Colors.white24, fontSize: 14),),
-        Expanded(
-          child: new Container(
-              margin: const EdgeInsets.only(left: 20.0, right: 10.0),
-              child: Divider(
-                color: Colors.white24,
-                height: 36,
-                thickness: 0.7,
-              )),
-        ),
-      ]),
-    );
     var message = Container(
       alignment: Alignment.center,
       child: Row(
@@ -137,12 +114,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   key: _forgotPasswordFormKey,
                   child: Column(
                       children: <Widget> [
-                        SizedBox(height: 100,),
-                        Text('House.Inventory'.toUpperCase(), style: TextStyle(
-                            fontSize: 30,
-                            color: Colors.amber
-                        ),),
-                        SizedBox(height: 40,),
+                        StartPage.headerWidget,
                         _isSent ? message : SizedBox(),
                         SizedBox(height: 20,),
                         TextFormField(
@@ -212,7 +184,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           ),
                         ),
                         SizedBox(height: 30,),
-                        divider,
+                        StartPage.divider,
                         Container(
                             margin: EdgeInsets.only(bottom: 12),
                             child: Row(

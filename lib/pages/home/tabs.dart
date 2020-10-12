@@ -1,9 +1,6 @@
 import 'package:houseinventory/pages/dashboard/dashboard.dart';
-import 'package:houseinventory/util/login_handler.dart';
 import '../../widgets/tab_navigation_item.dart';
 import 'package:flutter/material.dart';
-
-
 
 class TabsPage extends StatefulWidget {
   static const String route = Dashboard.route;
@@ -41,7 +38,11 @@ class _TabsPageState extends State<TabsPage> {
         fixedColor: Colors.black,
         backgroundColor: Colors.amber,
         currentIndex: currentIndex,
-        onTap: (int index) => setState(() => currentIndex = index),
+        onTap: (int index) {
+            setState(() {
+              currentIndex = index;
+            });
+        },
         iconSize: 32,
         selectedFontSize: 13,
         unselectedFontSize: 13,

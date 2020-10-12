@@ -1,18 +1,54 @@
 import 'dart:convert';
 import 'package:houseinventory/pages/home/tabs.dart';
 import 'package:houseinventory/util/contants.dart';
+import 'package:houseinventory/util/encrypter.dart';
+import 'package:houseinventory/util/huawei_account.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:houseinventory/util/validator.dart';
-import 'package:houseinventory/widgets/loading_dialog.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:houseinventory/pages/start/forgot_password.dart';
-import 'package:houseinventory/util/aes_handler.dart';
-import 'package:houseinventory/widgets/appbar.dart';
 
 class StartPage extends StatefulWidget {
   static const String route = '/Start';
+
+  static Widget headerWidget = Container(
+    margin: EdgeInsets.only(top: 100, bottom: 60),
+    child: Column(
+      children: [
+        Icon(Icons.home, color: Colors.amber, size: 40,),
+        Text('House.Inventory'.toUpperCase(), style: TextStyle(
+            fontSize: 30,
+            color: Colors.amber
+        ),),
+      ],
+    ),
+  );
+  static Widget divider = Container(
+    margin: EdgeInsets.symmetric(vertical: 6),
+    child: Row(children: <Widget>[
+      Expanded(
+        child: new Container(
+            margin: const EdgeInsets.only(left: 10.0, right: 20.0),
+            child: Divider(
+              color: Colors.white24,
+              height: 36,
+              thickness: 0.7,
+            )),
+      ),
+      Text("or", style: TextStyle(color: Colors.white24, fontSize: 14),),
+      Expanded(
+        child: new Container(
+            margin: const EdgeInsets.only(left: 20.0, right: 10.0),
+            child: Divider(
+              color: Colors.white24,
+              height: 36,
+              thickness: 0.7,
+            )),
+      ),
+    ]),
+  );
 
   @override
   _StartPageState createState() => _StartPageState();
@@ -46,165 +82,88 @@ class _StartPageState extends State<StartPage> {
     signUpPassword.dispose();
     signUpName.dispose();
     signInEmail.dispose();
+    signInPassword.dispose();
     isLoading = false;
   }
 
-  Future<http.Response> requestSignUp() {
-    return http.post(
-      Constants.apiURL + '/api/register',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        "email":  signUpEmail.text,
-        "password": signUpPassword.text,
-        "avatar": "",
-        "name": signUpName.text
-      }),
-    ).timeout(
-        const Duration(seconds: 5), onTimeout: () {
-        return null;
-    });
-  }
-  requestSignUpHandler(response) {
-    if(response != null && response.statusCode == 200) {
-      var json = jsonDecode(response.body);
-      if(json['result'] == true) {
-        loginProcedure(json['token']);
+  requestSignUp() async {
+    try {
+      http.Response response = await http.post(
+        Constants.apiURL + '/api/register',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          "email":  signUpEmail.text,
+          "password": Encrypter().SHA256(signUpPassword.text),
+          "avatar": "",
+          "name": signUpName.text
+        }),
+      ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
+      if (response != null && response.statusCode == 200) {
+        var json = jsonDecode(response.body);
+        json['result'] == true ? loginProcedure(json) : _promptError('Signup Error', 'This email address is already in use. Please sign up with a different email address.', 'OK');
       }
       else {
-        _alreadyTakenEmailError();
+        _promptError('Server Error', 'Problem occured while communicating with server.', 'Try Again');
       }
+    } catch (exception) {
+      _promptError('Network Error', 'Problem occured while communicating with server.', 'Try Again');
     }
-    else {
-      // another error occured
-      _someErrorHappenedAlert();
+  }
+  requestSignIn() async {
+    try {
+      http.Response response = await http.post(
+        Constants.apiURL + '/api/login',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          "email":  signInEmail.text,
+          "password": Encrypter().SHA256(signInPassword.text)
+        }),
+      ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
+      if(response != null && response.statusCode == 200) {
+        var json = jsonDecode(response.body);
+        (json['result'] == true && json['token'] != null) ? loginProcedure(json) : _promptError('Authentication Error', 'Email and Password do not match. Please check your credentials.', 'OK');
+      }
+      else {
+        _promptError('Server Error', 'Problem occured while communicating with server.', 'Try Again');
+      }
+    } catch (exception) {
+      _promptError('Network Error', 'Problem occured while communicating with server.', 'Try Again');
     }
   }
 
-  Future<http.Response> requestSignIn() {
-    return http.post(
-      Constants.apiURL + '/api/login',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        "email":  signInEmail.text,
-        "password": signInPassword.text
-      }),
-    ).timeout(
-        const Duration(seconds: 5), onTimeout: () {
-      return null;
-    });
-  }
-  requestSignInHandler(response) {
-    if(response != null && response.statusCode == 200) {
-      var json = jsonDecode(response.body);
-      if(json['result'] == true && json['token'] != null) {
-        loginProcedure(json['token']);
-      }
-      else {
-        _authenticationError();
-      }
-    }
-    else {
-      // another error occured
-      _someErrorHappenedAlert();
-    }
-  }
-
-  void loginProcedure(token) {
-    sharedPrefs.setString("token", token);
+  void loginProcedure(json) {
+    sharedPrefs.setString("token", json['token']);
+    sharedPrefs.setString("secure_key", json['secure_key']);
+    Navigator.of(context).popUntil((route) => route.isFirst);
     Navigator.pushReplacementNamed(context, TabsPage.route);
   }
-  Future<void> _someErrorHappenedAlert() async {
+  Future<void> _promptError(String title, String body, String buttonText) async {
     setState(() {
       isLoading = !isLoading;
     });
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Something Went Wrong!', style: TextStyle(
+          title: Text(title, style: TextStyle(
             fontSize: 16,
           )),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('An error occured during request.'),
-                Text('Please check your connection.'),
+                Text(body),
               ],
             ),
           ),
-          actionsPadding: EdgeInsets.symmetric(horizontal: 30),
+          actionsPadding: EdgeInsets.symmetric(horizontal: 10),
           actions: <Widget>[
             FlatButton(
-              child: Text('OK', style: TextStyle(color: Colors.blue),),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-  Future<void> _alreadyTakenEmailError() async {
-    setState(() {
-      isLoading = !isLoading;
-    });
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Email Address is in Use!', style: TextStyle(
-            fontSize: 16,
-          )),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Please enter another email address.'),
-              ],
-            ),
-          ),
-          actionsPadding: EdgeInsets.symmetric(horizontal: 30),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('Change Address', style: TextStyle(color: Colors.blue),),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-  Future<void> _authenticationError() async {
-    setState(() {
-      isLoading = !isLoading;
-    });
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Authentication Failed', style: TextStyle(
-            fontSize: 16,
-          )),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Please check your email and password.'),
-              ],
-            ),
-          ),
-          actionsPadding: EdgeInsets.symmetric(horizontal: 30),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('OK', style: TextStyle(color: Colors.blue),),
+              child: Text(buttonText, style: TextStyle(color: Colors.blue),),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -217,31 +176,32 @@ class _StartPageState extends State<StartPage> {
 
   Widget build(BuildContext context) {
 
-    var divider = Container(
-      margin: EdgeInsets.symmetric(vertical: 6),
-      child: Row(children: <Widget>[
-        Expanded(
-          child: new Container(
-              margin: const EdgeInsets.only(left: 10.0, right: 20.0),
-              child: Divider(
-                color: Colors.white24,
-                height: 36,
-                thickness: 0.7,
-              )),
+    var huaweiButton = Container(
+      margin: EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+      height: 36,
+      child: FlatButton(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          //side: BorderSide(color: Colors.red)
         ),
-        Text("or", style: TextStyle(color: Colors.white24, fontSize: 14),),
-        Expanded(
-          child: new Container(
-              margin: const EdgeInsets.only(left: 20.0, right: 10.0),
-              child: Divider(
-                color: Colors.white24,
-                height: 36,
-                thickness: 0.7,
-              )),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/hw_24x24_logo.png', width: 26, height: 26,),
+            SizedBox(width: 10,),
+            Text('Sign In with HUAWEI ID', style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+            ),),
+            //SizedBox(width: 0,),
+          ],
         ),
-      ]),
+        color: Color(0xffef484b),
+        onPressed: () {
+          HuaweiAccount(context).signIn();
+        },
+      ),
     );
-
     var signInPage = Container(
       alignment: Alignment.center,
       margin: EdgeInsets.symmetric(horizontal: 30, vertical: 0),
@@ -258,12 +218,7 @@ class _StartPageState extends State<StartPage> {
                   key: _signInFormKey,
                   child: Column(
                       children: <Widget> [
-                        SizedBox(height: 100,),
-                        Text('House.Inventory'.toUpperCase(), style: TextStyle(
-                            fontSize: 30,
-                            color: Colors.amber
-                        ),),
-                        SizedBox(height: 60,),
+                        StartPage.headerWidget,
                         TextFormField(
                           textCapitalization: TextCapitalization.words,
                           textAlignVertical: TextAlignVertical.center,
@@ -383,37 +338,13 @@ class _StartPageState extends State<StartPage> {
                                 setState(() {
                                   isLoading = !isLoading;
                                 });
-                                requestSignIn().then((response) => (requestSignInHandler(response)));
+                                requestSignIn();
                               }
                             },
                           ),
                         ),
-                        divider,
-                        Container(
-                          margin: EdgeInsets.symmetric(horizontal: 0, vertical: 4),
-                          height: 36,
-                          child: FlatButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              //side: BorderSide(color: Colors.red)
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Image.asset('assets/images/hw_24x24_logo.png', width: 24, height: 24,),
-                                Text('Sign in with HUAWEI ID', style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),),
-                                SizedBox(width: 20,),
-                              ],
-                            ),
-                            color: Color(0xffef484b),
-                            onPressed: () {
-
-                            },
-                          ),
-                        ),
+                        StartPage.divider,
+                        huaweiButton,
                         Container(
                           margin: EdgeInsets.symmetric(horizontal: 10, vertical: 24),
                           child: Row(
@@ -468,12 +399,7 @@ class _StartPageState extends State<StartPage> {
                   key: _signUpFormKey,
                   child: Column(
                       children: <Widget> [
-                        SizedBox(height: 100,),
-                        Text('House.Inventory'.toUpperCase(), style: TextStyle(
-                            fontSize: 30,
-                            color: Colors.amber,
-                        ),),
-                        SizedBox(height: 60,),
+                        StartPage.headerWidget,
                         TextFormField(
                           textCapitalization: TextCapitalization.words,
                           textAlignVertical: TextAlignVertical.center,
@@ -636,37 +562,13 @@ class _StartPageState extends State<StartPage> {
                                   setState(() {
                                     isLoading = !isLoading;
                                   });
-                                  requestSignUp().then((response) => (requestSignUpHandler(response)));
+                                  requestSignUp();
                               }
                             },
                           ),
                         ),
-                        divider,
-                        Container(
-                          height: 36,
-                          margin: EdgeInsets.symmetric(horizontal:0,vertical: 4),
-                          child: FlatButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              //side: BorderSide(color: Colors.red)
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Image.asset('assets/images/hw_24x24_logo.png', width: 24, height: 24,),
-                                Text('Sign in with HUAWEI ID', style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),),
-                                SizedBox(width: 20,),
-                              ],
-                            ),
-                            color: Color(0xffef484b),
-                            onPressed: () {
-
-                            },
-                          ),
-                        ),
+                        StartPage.divider,
+                        huaweiButton,
                       ]),
                 ),
               ),
@@ -692,6 +594,5 @@ class _StartPageState extends State<StartPage> {
        )
     );
   }
-
 
 }

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:houseinventory/pages/account/account_view.dart';
 
 class CustomAppBar extends StatelessWidget with PreferredSizeWidget {
   final String title;
@@ -14,14 +15,15 @@ class CustomAppBar extends StatelessWidget with PreferredSizeWidget {
         title,
         style: TextStyle(
             color: Colors.black54,
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold),
       ),
       actions: <Widget>[IconButton(
         icon: Icon(Icons.account_circle, size: 35, color: Colors.black), onPressed: () {
-        Scaffold.of(context).showSnackBar(snackBar);
+        // ignore: unnecessary_statements
+        (this.title != 'Account Info') ? Navigator.pushNamed(context, AccountViewPage.route) : null;
       },
-      )],
+      ), SizedBox(width: 16,)],
       toolbarHeight: 60,
       backgroundColor: Colors.amber,
       brightness: Brightness.dark,

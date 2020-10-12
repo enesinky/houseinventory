@@ -12,7 +12,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await sharedPrefs.init();
   await processData.init();
-  var isLoggedIn = await loginHandler.init();
+  bool isLoggedIn = await loginHandler.init();
   runApp(
     MyApp(isLoggedIn),
   );

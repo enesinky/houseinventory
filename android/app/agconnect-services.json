@@ -1,0 +1,30 @@
+{
+	"agcgw":{
+		"backurl":"connect-dre.dbankcloud.cn",
+		"url":"connect-dre.hispace.hicloud.com"
+	},
+	"client":{
+		"cp_id":"5190090000024879230",
+		"product_id":"736430079244655542",
+		"client_id":"463632913158636736",
+		"client_secret":"99E546892CC80949695E3DA411A87CFC4DA252AD97EBDFCA11437D64A81D9B38",
+		"app_id":"103008197",
+		"package_name":"com.enesinky.houseinventory",
+		"api_key":"CgB6e3x9pLw4SoeaNyc3OmGna2QFtHPAJWPLMlJFye4KeR4oZRJJjLer8wIm6lr+XhA2RB9OZJbATgJqQlDkVcSI"
+	},
+	"service":{
+		"analytics":{
+			"collector_url":"datacollector-dre.dt.hicloud.com,datacollector-dre.dt.dbankcloud.cn",
+			"resource_id":"p1",
+			"channel_id":""
+		},
+		"cloudstorage":{
+			"storage_url":"https://ops-dre.agcstorage.link"
+		},
+		"ml":{
+			"mlservice_url":"ml-api-dre.ai.dbankcloud.com,ml-api-dre.ai.dbankcloud.cn"
+		}
+	},
+	"region":"DE",
+	"configuration_version":"1.0"
+}

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class CustomLoadingDialog {
 
-  static var _widget = Dialog(
-    child: Center(
+  static var _widget = AlertDialog(
+    content: Center(
       heightFactor: 1.6,
       widthFactor: 1,
       child: new Column(

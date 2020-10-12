@@ -32,7 +32,7 @@ class _SettingListItemBoolState extends State<SettingListItemBool> {
     return ListTile(
       title: Text(
         title,
-        style: TextStyle(fontSize: 18),
+        style: TextStyle(fontSize: 14),
       ),
       subtitle: subtitle != null ? Text(subtitle) : null,
       trailing: Switch(
@@ -85,13 +85,13 @@ class _SettingListItemSelectState extends State<SettingListItemSelect> {
     return ListTile(
       title: Text(
         title,
-        style: TextStyle(fontSize: 18),
+        style: TextStyle(fontSize: 14),
       ),
       subtitle: subtitle != null ? Text(subtitle) : null,
       trailing: DropdownButton<String>(
         hint: Text('Language'),
         value: dropDownValue,
-          style: TextStyle(fontSize: 18, color: Colors.black),
+          style: TextStyle(fontSize: 14, color: Colors.black),
           elevation: 16,
           underline: Container(
             height: 2,
@@ -129,7 +129,7 @@ class SettingGroupLabel extends StatelessWidget {
         children: [Text(label, style:
         TextStyle(
             color: Colors.blue,
-            fontSize: 17,
+            fontSize: 15,
             fontWeight: FontWeight.bold
         ),)],
       ),

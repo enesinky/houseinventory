@@ -1,3 +1,5 @@
+import 'package:houseinventory/pages/account/account_view.dart';
+import 'package:houseinventory/pages/camera/image_classification.dart';
 import 'package:houseinventory/pages/dashboard/dashboard.dart';
 import 'package:houseinventory/pages/inventory/inventory_view.dart';
 import 'package:houseinventory/pages/inventory/item_view.dart';
@@ -8,6 +10,7 @@ import 'package:houseinventory/pages/home/tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:houseinventory/pages/start/forgot_password.dart';
+import 'package:houseinventory/pages/start/signin_with_huawei.dart';
 import 'package:houseinventory/pages/start/start.dart';
 
 import 'path.dart';
@@ -51,7 +54,14 @@ class RouteConfiguration {
       r'^' + SettingsPage.route,
           (context, match) => SettingsPage(),
     ),
-
+    Path(
+      r'^' + AccountViewPage.route,
+          (context, match) => AccountViewPage(),
+    ),
+    Path(
+      r'^' + CameraPage.route,
+          (context, match) => CameraPage(),
+    )
   ];
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {

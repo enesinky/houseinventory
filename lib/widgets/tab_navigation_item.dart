@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:houseinventory/pages/camera/image_classification.dart';
 
 import '../pages/search/search.dart';
 import '../pages/dashboard/dashboard.dart';
@@ -29,7 +30,7 @@ class TabNavigationItem {
       title: Text("Inventory"),
     ),
     TabNavigationItem(
-      page: SearchPage(),
+      page: CameraPage(),
       icon: Icon(Icons.camera_alt),
       title: Text("Camera"),
     ),

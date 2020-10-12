@@ -149,7 +149,7 @@ packages:
     source: hosted
     version: "2.1.1"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       url: "https://pub.dartlang.org"
@@ -202,6 +202,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_plugin_android_lifecycle:
+    dependency: transitive
+    description:
+      name: flutter_plugin_android_lifecycle
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.11"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -254,8 +261,36 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.4"
-  intl:
+  huawei_account:
+    dependency: "direct main"
+    description:
+      name: huawei_account
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.0.0+300"
+  huawei_ml:
+    dependency: "direct main"
+    description:
+      name: huawei_ml
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.1+300"
+  image_picker:
+    dependency: "direct main"
+    description:
+      name: image_picker
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.7+11"
+  image_picker_platform_interface:
     dependency: transitive
+    description:
+      name: image_picker_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.1"
+  intl:
+    dependency: "direct main"
     description:
       name: intl
       url: "https://pub.dartlang.org"
@@ -497,6 +532,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
+  syncfusion_flutter_charts:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_charts
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "18.3.38"
+  syncfusion_flutter_core:
+    dependency: transitive
+    description:
+      name: syncfusion_flutter_core
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "18.3.38"
   term_glyph:
     dependency: transitive
     description:

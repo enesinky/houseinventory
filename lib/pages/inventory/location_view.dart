@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:houseinventory/data/process_data.dart';
 import 'package:houseinventory/model/item.dart';
 import 'package:houseinventory/model/item_location.dart';
+import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/widgets/item_card.dart';
 import 'package:houseinventory/widgets/loading_dialog.dart';
 import 'package:houseinventory/widgets/search_box.dart';
@@ -93,6 +94,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
   _dialogTextFieldDecoration(int index) {
     return InputDecoration(
       enabled: true,
+      counter: SizedBox.shrink(),
       //isDense: true,
       contentPadding: EdgeInsets.all(10),
       enabledBorder: OutlineInputBorder(
@@ -105,6 +107,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
         borderSide: BorderSide(color: Colors.grey, width: 1),
       ),
       hintText: "#" + index.toString() + " Item name",
+      hintStyle: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.2))
 
     );
   }
@@ -176,7 +179,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10.0))
       ),
-      actionsPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      actionsPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+      contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 20),
       content: Container(
         width: MediaQuery.of(context).size.width * 0.90,
         child: Column(
@@ -188,61 +192,72 @@ class _AddItemDialogState extends State<AddItemDialog> {
         ),
       ),
       actions: <Widget>[
-        InkWell(
-          onTap: () => {
-            setState(() {
-              if(controllers.length < 20) {
-                //int insertId = c.length > 0 ? textFieldIds.last + 1 : 1;
-                controllers.add(new TextEditingController());
-              }else {
-                print('Cannot add More than 20 items at a time.');
-              }
-            }),
-            Future.delayed(const Duration(milliseconds: 200), () {
-              setState(() {
-                FocusScope.of(context).nextFocus();
-              });
-            })
-          },
-          splashColor: Colors.amber,
-          child: Container(
-            height: 30,
-            width: 80,
-            alignment: Alignment.center,
-            //padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            child: Text('+Add Item', style: TextStyle(
-                fontSize: 14,
+        Container(
+          width: MediaQuery.of(context).size.width * 0.90,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              InkWell(
+                onTap: () => {
+                if(controllers.length < Constants.MAX_ADD_ITEM_LIMIT) {
+                  setState(() {
+                    controllers.add(new TextEditingController());
+                  }),
+                  Future.delayed(const Duration(milliseconds: 50), () {
+                    setState(() {
+                      FocusScope.of(context).nextFocus();
+                    });
+                  })
+                }
+                },
+                splashColor: Colors.amber,
+                child: Container(
+                  height: 30,
+                  width: 56,
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, size: 14, color: Colors.amber),
+                      Text('Add', style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.amber,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                          decorationThickness: 2
+                      ),),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(width: 40,),
+              InkWell(
+                onTap: () => Navigator.of(context).pop(),
+                splashColor: Colors.amber,
+                child: Container(
+                  width: 56,
+                  height: 30,
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                  child: Text('Cancel', style: TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold
+                  ),),
+                ),
+              ),
+              FlatButton(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  //side: BorderSide(color: Colors.red)
+                ),
+                child: new Text('Done'),
                 color: Colors.blue,
-                fontWeight: FontWeight.bold,
-                decoration: TextDecoration.underline,
-                decorationThickness: 2
-            ),),
+                onPressed: () {
+                  _submitForm();
+                },
+              ),
+            ],
           ),
-        ),
-        SizedBox(width: 30,),
-        InkWell(
-          onTap: () => Navigator.of(context).pop(),
-          splashColor: Colors.amber,
-          child: Container(
-            height: 30,
-            alignment: Alignment.center,
-            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 0),
-            child: Text('Cancel', style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold
-            ),),
-          ),
-        ),
-        FlatButton(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            //side: BorderSide(color: Colors.red)
-          ),
-          child: new Text('Done'),
-          color: Colors.blue,
-          onPressed: () {
-            _submitForm();
-          },
         )
       ],
     );

@@ -10,7 +10,6 @@ import 'package:houseinventory/pages/home/tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:houseinventory/pages/start/forgot_password.dart';
-import 'package:houseinventory/pages/start/signin_with_huawei.dart';
 import 'package:houseinventory/pages/start/start.dart';
 
 import 'path.dart';

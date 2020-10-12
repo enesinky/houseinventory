@@ -14,14 +14,9 @@
     limitations under the License.
 */
 
-import 'package:huawei_account/auth/account.dart';
 import 'package:huawei_account/auth/auth_huawei_id.dart';
-import 'package:huawei_account/constants/error_codes.dart';
-import 'package:huawei_account/helpers/auth_params.dart';
-
 import 'package:huawei_account/helpers/scope.dart';
 import 'package:huawei_account/hms_account.dart';
-import 'package:huawei_account/auth/auth_huawei_id.dart';
 import 'package:huawei_account/authbutton/huawei_id_auth_button.dart';
 import 'package:flutter/material.dart';
 import 'package:huawei_account/helpers/auth_param_helper.dart';

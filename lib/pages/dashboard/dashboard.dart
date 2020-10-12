@@ -1,4 +1,3 @@
-import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 import '../../widgets/appbar.dart';
@@ -47,6 +46,7 @@ class Dashboard extends StatelessWidget {
                                 text: 'Item Utilization',
                                 // Aligns the chart title to left
                                 alignment: ChartAlignment.near,
+                                // ignore: deprecated_member_use
                                 textStyle: ChartTextStyle(
                                   color: Colors.black38,
                                   fontWeight: FontWeight.bold,
@@ -89,6 +89,7 @@ class Dashboard extends StatelessWidget {
                                 text: 'Recorded Items by Year',
                                 // Aligns the chart title to left
                                 alignment: ChartAlignment.near,
+                                // ignore: deprecated_member_use
                                 textStyle: ChartTextStyle(
                                   color: Colors.black38,
                                   fontWeight: FontWeight.bold,

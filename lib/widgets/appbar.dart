@@ -9,7 +9,6 @@ class CustomAppBar extends StatelessWidget with PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final snackBar = SnackBar(content: Text('Lets view profile'));
     return AppBar(
       title: Text(
         title,

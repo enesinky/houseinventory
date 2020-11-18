@@ -12,7 +12,7 @@ class SearchPage extends StatelessWidget {
         body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[Text('This is search page')],
+              children: <Widget>[Text('HMS Canada, Hello World!')],
             )));
   }
 

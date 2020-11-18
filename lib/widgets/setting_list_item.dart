@@ -128,8 +128,8 @@ class SettingGroupLabel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [Text(label, style:
         TextStyle(
-            color: Colors.blue,
-            fontSize: 15,
+            color: Colors.blueAccent,
+            fontSize: 14,
             fontWeight: FontWeight.bold
         ),)],
       ),

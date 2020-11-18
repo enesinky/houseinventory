@@ -1,6 +1,6 @@
 class Constants {
 
-  static var _apiURL = "http://192.168.1.39:9888/houseinventory_backend";
+  static var _apiURL = "http://192.168.1.34:9888/houseinventory_backend";
 
   static int _API_TIME_OUT_LIMIT = 5;
 

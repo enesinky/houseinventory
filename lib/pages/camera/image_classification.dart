@@ -1,27 +1,10 @@
-/*
-    Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-*/
-
 import 'dart:convert';
-
+import 'package:houseinventory/model/recognized_object.dart';
 import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:houseinventory/widgets/appbar.dart';
-import 'package:houseinventory/widgets/loading_dialog.dart';
 import 'package:huawei_ml/classification/ml_image_classification_client.dart';
 import 'package:huawei_ml/classification/ml_image_classification_settings.dart';
 import 'package:huawei_ml/classification/model/ml_image_classification.dart';
@@ -52,7 +35,7 @@ class _CameraPageState extends State<CameraPage> {
     _checkPermissions();
     super.initState();
     WidgetsBinding.instance
-        .addPostFrameCallback((_) => _showImagePickingOptions(scaffoldKey));
+        .addPostFrameCallback((_) => _showImagePickingOptions());
   }
 
   _checkPermissions() async {
@@ -67,35 +50,214 @@ class _CameraPageState extends State<CameraPage> {
     final pickedFile = await picker.getImage(source: imageSource);
     return pickedFile.path;
   }
+  _showSnackBar(message, color) {
+    scaffoldKey.currentState.hideCurrentSnackBar();
+    return scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 2),
+          elevation: 12,
+          content: Container(
+            //height: 12.0,
+              child: Text(message, style: TextStyle(fontSize: 12, color: Colors.white),)),
+          backgroundColor: color,));
+  }
+  _addItemCompletedProcedure() {
+    _showSnackBar("Items Added.", Colors.green);
+    setState(() {
+      isFinished = true;
+    });
+    _showImagePickingOptions();
+  }
+  _requestAddItems() async {
+    var selectedObjects = recognizedObjects.where((element) => element.isSelected == true);
+    if (selectedObjects.length > 0 && inventoryDropDownValue != null) {
+      setState(() {
+        isLoading = true;
+        isFinished = false;
+      });
+      List<String> objectList = List<String>();
+      selectedObjects.forEach((element) {
+        objectList.add(element.name);
+      });
+      var body = jsonEncode(<String, dynamic>{
+        "token": sharedPrefs.getString("token"),
+        "inventory": inventoryDropDownValue,
+        "items": objectList
+      });
+
+      try {
+        http.Response response = await http.post(
+          Constants.apiURL + '/api/items/new',
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: body,
+        ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
+        setState(() {
+          isLoading = false;
+        });
+
+        if (response != null && response.statusCode == 200) {
+          var json = jsonDecode(response.body);
+          json['result'] == true ? _addItemCompletedProcedure() : _showSnackBar("Something went wrong!", Colors.red);
+        }
+        else {
+          _showSnackBar("Server Error: Problem occured while communicating with server.", Colors.red);
+        }
+      } catch (exception) {
+        setState(() {
+          isLoading = false;
+        });
+        _showSnackBar("Network Error: Problem occured while communicating with server.", Colors.red);
+      }
+    }else {
+      _showSnackBar("Select objects and inventory place.", Colors.black);
+    }
+  }
+  _startRecognition() async {
+    settings.largestNumberOfReturns = 10;
+    settings.minAcceptablePossibility = 0.5;
+    try {
+      // clear recognized objects
+      recognizedObjects.clear();
+      // show loading bar
+      setState(() {
+        isProcessing = true;
+        isFinished = false;
+      });
+      // wait for result
+      final List<MlImageClassification> classification =
+      await MlImageClassificationClient.getRemoteClassificationResult(settings);
+      classification.asMap().forEach((index, element) {
+        setState(() {
+          recognizedObjects.add(new RecognizedObject(
+              element.name,
+              element.possibility,
+              element.possibility > 0.7 ? true : false));
+        });
+      });
+      setState(() {
+        isProcessing = false;
+      });
+    } on Exception catch (e) {
+      print(e.toString());
+      setState(() {
+        isProcessing = false;
+      });
+    }
+  }
+  _showImagePickingOptions() async {
+    scaffoldKey.currentState.showBottomSheet((context) =>
+        Container(
+          height: 150,
+          width: MediaQuery
+              .of(context)
+              .size
+              .width,
+          color: Colors.amber,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Container(
+                height: 50,
+                child: RaisedButton(
+                    padding: EdgeInsets.all(4),
+                    color: Colors.amberAccent,
+                    textColor: Colors.black,
+                    child: Column(
+                      children: [
+                        Icon(Icons.add_a_photo),
+                        Text("Take Photo", style: TextStyle(fontSize: 13),),
+                      ],
+                    ),
+                    onPressed: () async {
+                      final String path = await getImage(ImageSource.camera);
+                      settings.path = path;
+                      Navigator.pop(context);
+                      _startRecognition();
+                    }),
+              ),
+              Container(
+                height: 50,
+                child: RaisedButton(
+                    padding: EdgeInsets.all(4),
+                    color: Colors.amberAccent,
+                    textColor: Colors.black,
+                    child: Column(
+                      children: [
+                        Icon(Icons.photo_library),
+                        Text("Select From Gallery",
+                          style: TextStyle(fontSize: 13),),
+                      ],
+                    ),
+                    onPressed: () async {
+                      final String path = await getImage(ImageSource.gallery);
+                      settings.path = path;
+                      Navigator.pop(context);
+                      _startRecognition();
+                    }),
+              ),
+            ],
+          ),
+        ));
+  }
+  Widget recognizedObjectWidget(int index, RecognizedObject object) {
+    double possibilityAmplified = object.possibility * 10;
+    double opacityFactor = (index == 0 || index == 1) ? 1.0 : possibilityAmplified.roundToDouble() / 10;
+    Color color = Colors.blueAccent.withOpacity(opacityFactor);
+
+    return InkWell(
+      child: Container(
+        child: Text(object.name, style: TextStyle(
+            color: object.isSelected ? Colors.white : Colors.black.withOpacity(0.25),
+            fontSize: 16),),
+        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        margin: EdgeInsets.symmetric(horizontal: 0, vertical: 3),
+        decoration: BoxDecoration(
+            color: object.isSelected ? color : Colors.black26,
+            borderRadius: BorderRadius.circular(12)
+        ),
+      ),
+      onTap: ()  {
+        setState(() {
+          object.isSelected = !object.isSelected;
+        });
+      },
+    );
+  }
+  Widget addedObjectWidget(RecognizedObject object) {
+    return Container(
+      child:
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.done, size: 14, color: Colors.white),
+          SizedBox(width: 4,),
+          Text(object.name, style: TextStyle(
+              color: Colors.white,
+              fontSize: 16),),
+        ],
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      margin: EdgeInsets.symmetric(horizontal: 0, vertical: 3),
+      decoration: BoxDecoration(
+          color: Colors.green,
+          borderRadius: BorderRadius.circular(12)
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
 
-      objectWidgets.clear();
-      if(recognizedObjects.length > 0 && isFinished == false) {
-        recognizedObjects.asMap().forEach((index, element) {
-          objectWidgets.add(recognizedObjectWidget(index, element));
-        });
-      }
-      else if(recognizedObjects.length == 0 && isFinished == false) {
-        objectWidgets.add(
-          Center(
-            child: Text('No object recognized yet.', style: TextStyle(
-              fontSize: 13,
-              color: Colors.black54,
-              fontStyle: FontStyle.italic,
-            ),),
-          )
-        );
-      }
-      else if(isFinished == true) {
-        recognizedObjects.where((element) => element.isSelected == true).forEach((element) {
-          objectWidgets.add(addedObjectWidget(element));
-        });
-      }
-
-
-    var processingWidget = Container(
+      var noObjectWidget = Center(
+        child: Text('No object recognized yet.', style: TextStyle(
+          fontSize: 13,
+          color: Colors.black54,
+          fontStyle: FontStyle.italic,
+        ),),
+      );
+      var processingWidget = Container(
       margin: EdgeInsets.symmetric(vertical: 30),
       child: Center(
         child: Column(
@@ -107,75 +269,24 @@ class _CameraPageState extends State<CameraPage> {
         ),
       ),
     );
-    _showSnackBar(message, color) {
-        scaffoldKey.currentState.hideCurrentSnackBar();
-        return scaffoldKey.currentState.showSnackBar(
-            SnackBar(
-              duration: const Duration(seconds: 2),
-              elevation: 12,
-              content: Container(
-                //height: 12.0,
-                  child: Text(message, style: TextStyle(fontSize: 12, color: Colors.white),)),
-              backgroundColor: color,));
+      objectWidgets.clear();
+      if(recognizedObjects.length > 0 && !isFinished) {
+        recognizedObjects.asMap().forEach((index, element) {
+          objectWidgets.add(recognizedObjectWidget(index, element));
+        });
       }
-    _addItemCompletedProcedure() {
-        _showSnackBar("Items Added.", Colors.green);
-        setState(() {
-          isFinished = true;
-        });
-        _showImagePickingOptions(scaffoldKey);
-    }
-    _requestAddItems() async {
-      var selectedObjects = recognizedObjects.where((element) => element.isSelected == true);
-      if (selectedObjects.length > 0 && inventoryDropDownValue != null) {
-        setState(() {
-          isLoading = true;
-          isFinished = false;
-        });
-        List<String> objectList = List<String>();
-        selectedObjects.forEach((element) {
-          objectList.add(element.name);
-        });
-        var body = jsonEncode(<String, dynamic>{
-          "token": sharedPrefs.getString("token"),
-          "inventory": inventoryDropDownValue,
-          "items": objectList
-        });
-
-        try {
-          http.Response response = await http.post(
-            Constants.apiURL + '/api/items/new',
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: body,
-          ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
-          setState(() {
-            isLoading = false;
-          });
-
-          if (response != null && response.statusCode == 200) {
-            var json = jsonDecode(response.body);
-            json['result'] == true ? _addItemCompletedProcedure() : _showSnackBar("Something went wrong!", Colors.red);
-          }
-          else {
-            _showSnackBar("Server Error: Problem occured while communicating with server.", Colors.red);
-          }
-        } catch (exception) {
-          setState(() {
-            isLoading = false;
-          });
-          _showSnackBar("Network Error: Problem occured while communicating with server.", Colors.red);
-        }
-      }else {
-        _showSnackBar("Select objects and inventory place.", Colors.black);
+      else if(recognizedObjects.length == 0 && !isFinished) {
+        objectWidgets.add(noObjectWidget);
       }
-    }
-
+      else if(isFinished) {
+        recognizedObjects.where((element) => element.isSelected == true).forEach((element) {
+          objectWidgets.add(addedObjectWidget(element));
+        });
+      }
     return SafeArea(
       child: Scaffold(
           key: scaffoldKey,
-          appBar: CustomAppBar("Recognize Items"),
+          appBar: CustomAppBar("Object Recognition"),
           body: isLoading ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -190,7 +301,7 @@ class _CameraPageState extends State<CameraPage> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        _showImagePickingOptions(scaffoldKey);
+                        _showImagePickingOptions();
                       },
                       child: Container(
                         margin: EdgeInsets.symmetric(vertical: 10),
@@ -281,7 +392,13 @@ class _CameraPageState extends State<CameraPage> {
                             //     child: Text(value),
                             //   );
                             // }).toList(),
-                            items: [DropdownMenuItem(value: 'test', child: Text('test'),)],
+                            items: [
+                              DropdownMenuItem(value: 'Bedroom', child: Text('Bedroom')),
+                            DropdownMenuItem(value: 'Basement', child: Text('Basement')),
+                              DropdownMenuItem(value: 'Kitchen', child: Text('Kitchen')),
+                                DropdownMenuItem(value: 'Small Room Sofa', child: Text('Small Room Sofa')),
+                                  DropdownMenuItem(value: 'My Super Room', child: Text('My Super Room'))
+                              ],
                             onChanged: (String newValue) {
                               setState(() {
                                 inventoryDropDownValue = newValue;
@@ -325,146 +442,6 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
-  _startRecognition() async {
-    settings.largestNumberOfReturns = 10;
-    settings.minAcceptablePossibility = 0.5;
-    try {
-      // clear recognized objects
-      recognizedObjects.clear();
-      // show loading bar
-      setState(() {
-        isProcessing = true;
-        isFinished = false;
-      });
-      // wait for result
-      final List<MlImageClassification> classification =
-      await MlImageClassificationClient.getRemoteClassificationResult(settings);
-      classification.asMap().forEach((index, element) {
-        setState(() {
-          recognizedObjects.add(new RecognizedObject(
-              element.name,
-              element.possibility,
-              element.possibility > 0.7 ? true : false));
-        });
-      });
-      setState(() {
-        isProcessing = false;
-      });
-    } on Exception catch (e) {
-      print(e.toString());
-      setState(() {
-        isProcessing = false;
-      });
-    }
-  }
-  _showImagePickingOptions(ScaffoldKey) async {
-      ScaffoldKey.currentState.showBottomSheet((context) =>
-          Container(
-            height: 150,
-            width: MediaQuery
-                .of(context)
-                .size
-                .width,
-            color: Colors.amber,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Container(
-                  height: 50,
-                  child: RaisedButton(
-                      padding: EdgeInsets.all(4),
-                      color: Colors.amberAccent,
-                      textColor: Colors.black,
-                      child: Column(
-                        children: [
-                          Icon(Icons.add_a_photo),
-                          Text("Take Photo", style: TextStyle(fontSize: 13),),
-                        ],
-                      ),
-                      onPressed: () async {
-                        final String path = await getImage(ImageSource.camera);
-                        settings.path = path;
-                        Navigator.pop(context);
-                        _startRecognition();
-                      }),
-                ),
-                Container(
-                  height: 50,
-                  child: RaisedButton(
-                      padding: EdgeInsets.all(4),
-                      color: Colors.amberAccent,
-                      textColor: Colors.black,
-                      child: Column(
-                        children: [
-                          Icon(Icons.photo_library),
-                          Text("Select From Gallery",
-                            style: TextStyle(fontSize: 13),),
-                        ],
-                      ),
-                      onPressed: () async {
-                        final String path = await getImage(ImageSource.gallery);
-                        settings.path = path;
-                        Navigator.pop(context);
-                        _startRecognition();
-                      }),
-                ),
-              ],
-            ),
-          ));
-  }
-
-  Widget recognizedObjectWidget(int index, RecognizedObject object) {
-    double possibilityAmplified = object.possibility * 10;
-    double opacityFactor = (index == 0 || index == 1) ? 1.0 : possibilityAmplified.roundToDouble() / 10;
-    Color color = Colors.blueAccent.withOpacity(opacityFactor);
-
-    return InkWell(
-      child: Container(
-        child: Text(object.name, style: TextStyle(
-            color: object.isSelected ? Colors.white : Colors.black.withOpacity(0.25),
-            fontSize: 16),),
-        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-        margin: EdgeInsets.symmetric(horizontal: 0, vertical: 3),
-        decoration: BoxDecoration(
-            color: object.isSelected ? color : Colors.black26,
-            borderRadius: BorderRadius.circular(12)
-        ),
-      ),
-      onTap: ()  {
-        setState(() {
-          object.isSelected = !object.isSelected;
-        });
-      },
-    );
-  }
-  Widget addedObjectWidget(RecognizedObject object) {
-    return Container(
-      child:
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.done, size: 14, color: Colors.white),
-              SizedBox(width: 4,),
-              Text(object.name, style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16),),
-            ],
-          ),
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      margin: EdgeInsets.symmetric(horizontal: 0, vertical: 3),
-      decoration: BoxDecoration(
-          color: Colors.green,
-          borderRadius: BorderRadius.circular(12)
-      ),
-    );
-  }
-
 }
 
-class RecognizedObject {
-  String name;
-  double possibility;
-  bool isSelected;
 
-  RecognizedObject(this.name, this.possibility, this.isSelected);
-}

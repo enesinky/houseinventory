@@ -34,6 +34,7 @@ dependencies:
   huawei_ml: ^2.0.1+300
   image_picker: 0.6.7+11
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

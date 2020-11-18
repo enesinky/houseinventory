@@ -60,7 +60,7 @@ class RouteConfiguration {
     Path(
       r'^' + CameraPage.route,
           (context, match) => CameraPage(),
-    )
+    ),
   ];
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {

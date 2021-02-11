@@ -1,17 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'dart:math' as math;
-
+import 'package:timeago/timeago.dart' as timeago;
+import 'package:houseinventory/model/item.dart';
+import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:houseinventory/pages/inventory/item_view.dart';
 
-class ItemBox extends StatelessWidget {
-  final int locationId;
-  final String itemName;
-  final int itemId;
-  Color randomColor;
 
-  ItemBox(this.locationId, this.itemName, this.itemId) {
+
+// ignore: must_be_immutable
+class ItemBox extends StatelessWidget {
+  final Item item;
+  Color boxColor;
+
+  ItemBox(this.item) {
     //randomColor = Color((math.Random().nextDouble() * 0xFFFFFF).toInt());
     List<Color> circleColors = [
       Colors.red.shade700,
@@ -19,17 +21,39 @@ class ItemBox extends StatelessWidget {
       Colors.red.shade300,
       Colors.amber.shade900,
       Colors.amber.shade700,
+      Colors.amber.shade600,
+      Colors.deepOrangeAccent,
+      Colors.deepOrange.shade500,
+      Colors.blueGrey.shade400,
+      Colors.blueGrey.shade500
     ];
-    randomColor = circleColors[math.Random().nextInt(circleColors.length)];
+    if(sharedPrefs.getBool("randomItemColor") == true) {
+      boxColor = circleColors[item.iid.toInt() % 10];
+    } else {
+      boxColor = Colors.amber.shade600;
+    }
+
     //randomColor = Colors.primaries[math.Random().nextInt(Colors.primaries.length)];
   }
 
   @override
   Widget build(BuildContext context) {
-    var navigateUrl = ItemViewPage.route + '/' + this.locationId.toString() + '/' + this.itemId.toString();
-    var randomDate = new DateTime.utc(2020, DateTime.november, math.Random().nextInt(30));
-    List<String> days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    var stringDay = days[randomDate.weekday - 1];
+    var navigateUrl = ItemViewPage.route + '/' + this.item.iid.toString();
+    //var randomDate = new DateTime.parse(2020, DateTime.november, math.Random().nextInt(30));
+    var dateText;
+    DateTime dateCreated = DateTime.parse(this.item.created);
+    DateTime dateModified = DateTime.parse(this.item.modified);
+
+    final currentTime = new DateTime.now();
+    var createdTa = timeago.format(
+        currentTime.subtract(Duration(milliseconds: currentTime.millisecondsSinceEpoch - dateCreated.millisecondsSinceEpoch)),
+        locale: 'en');
+    var modifiedTa = timeago.format(
+        currentTime.subtract(Duration(milliseconds: currentTime.millisecondsSinceEpoch - dateModified.millisecondsSinceEpoch)),
+        locale: 'en');
+
+    dateText = (item.modified == item.created) ? "Created $createdTa" : "Modified $modifiedTa";
+
     final snackBarEditGuide = SnackBar(
       content: Text('Press Long to Edit the Item.', style: TextStyle(
           color: Colors.white,
@@ -42,10 +66,11 @@ class ItemBox extends StatelessWidget {
 
 
     return Container(
-      height: 68,
-      margin: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+      width: (MediaQuery.of(context).size.width * 0.9 - 16) / 2,
+      height: 100,
+      margin: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: InkWell(
-        splashColor: Colors.blue.shade200,
+        splashColor: Colors.amber,
         onLongPress: () => {
           Navigator.pushNamed(context, navigateUrl)
         },
@@ -57,39 +82,49 @@ class ItemBox extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
               //color: this.randomColor.withOpacity(0.5),
-              gradient: LinearGradient(colors: [randomColor.withOpacity(0.7), randomColor.withOpacity(0.3)]),
-              border: Border.all(color:this.randomColor.withOpacity(0.2), width: 1),
-              borderRadius: BorderRadius.all(Radius.circular(10))
+              gradient: LinearGradient(colors: [boxColor.withOpacity(0.9), boxColor.withOpacity(0.3)]),
+              border: Border.all(color:this.boxColor.withOpacity(0.2), width: 1),
+              borderRadius: BorderRadius.all(Radius.circular(4))
           ),
           child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Column(
                       children: [
-                        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                          Text(
-                            "Added on " + stringDay,
-                            style: TextStyle(
-                                color: Colors.black38,
-                                fontSize: 12,
-                                fontStyle: FontStyle.italic),
-                          ),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                          Container(
+                            child: Flexible(
+                              child: Text(
+                                dateText,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: TextStyle(
+                                    color: Colors.black38,
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic),
+                              )
+                            ),
+
+                          )
                         ]),
+                        SizedBox(height: 8),
                         Row(
                           children: [
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width - 100,
-                              child: Text(itemName,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w400
-                                  )),
+                            Container(
+                              child: Flexible(
+                                  child: Text(this.item.name,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black54
+                                      ))
+                              ),
                             )
+
                           ],
-                        ),
-                        SizedBox(
-                          height: 12,
                         )
                       ],
                     )),

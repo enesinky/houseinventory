@@ -88,6 +88,10 @@ class _StartPageState extends State<StartPage> {
 
   requestSignUp() async {
     try {
+      var enc = new Encrypter();
+      var emailHashedEncoded = base64.encode(utf8.encode(enc.SHA256(enc.SHA256(signUpEmail.text))));
+      var passwordHashedEncoded = base64.encode(utf8.encode(enc.SHA256(enc.SHA256(signUpPassword.text))));
+      print (emailHashedEncoded + "\n" + passwordHashedEncoded);
       http.Response response = await http.post(
         Constants.apiURL + '/api/register',
         headers: <String, String>{
@@ -95,14 +99,15 @@ class _StartPageState extends State<StartPage> {
         },
         body: jsonEncode(<String, String>{
           "email":  signUpEmail.text,
-          "password": Encrypter().SHA256(signUpPassword.text),
-          "avatar": "",
+          "password": passwordHashedEncoded,
+          "avatar": "/",
           "name": signUpName.text
         }),
       ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
       if (response != null && response.statusCode == 200) {
         var json = jsonDecode(response.body);
-        json['result'] == true ? loginProcedure(json) : _promptError('Signup Error', 'This email address is already in use. Please sign up with a different email address.', 'OK');
+        print(json);
+        json['result'] == true ? loginProcedure(emailHashedEncoded, passwordHashedEncoded) : _promptError('Signup Error', 'This email address is already in use. Please sign up with a different email address.', 'OK');
       }
       else {
         _promptError('Server Error', 'Problem occured while communicating with server.', 'Try Again');
@@ -113,19 +118,22 @@ class _StartPageState extends State<StartPage> {
   }
   requestSignIn() async {
     try {
+      var enc = Encrypter();
+      var emailHashedEncoded = base64.encode(utf8.encode(enc.SHA256(enc.SHA256(signInEmail.text))));
+      var passwordHashedEncoded = base64.encode(utf8.encode(enc.SHA256(enc.SHA256(signInPassword.text))));
       http.Response response = await http.post(
-        Constants.apiURL + '/api/login',
+        Constants.apiURL + '/api/auth',
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, String>{
-          "email":  signInEmail.text,
-          "password": Encrypter().SHA256(signInPassword.text)
+          "email": emailHashedEncoded,
+          "password": passwordHashedEncoded
         }),
       ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
       if(response != null && response.statusCode == 200) {
         var json = jsonDecode(response.body);
-        (json['result'] == true && json['token'] != null) ? loginProcedure(json) : _promptError('Authentication Error', 'Email and Password do not match. Please check your credentials.', 'OK');
+        (json['result'] == true) ? loginProcedure(emailHashedEncoded, passwordHashedEncoded) : _promptError('Authentication Error', 'Email and Password do not match. Please check your credentials.', 'OK');
       }
       else {
         _promptError('Server Error', 'Problem occured while communicating with server.', 'Try Again');
@@ -135,9 +143,9 @@ class _StartPageState extends State<StartPage> {
     }
   }
 
-  void loginProcedure(json) {
-    sharedPrefs.setString("token", json['token']);
-    sharedPrefs.setString("secure_key", json['secure_key']);
+  void loginProcedure(email, pass) {
+    sharedPrefs.setString("hash1", email);
+    sharedPrefs.setString("hash2", pass);
     Navigator.of(context).popUntil((route) => route.isFirst);
     Navigator.pushReplacementNamed(context, TabsPage.route);
   }

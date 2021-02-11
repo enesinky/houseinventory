@@ -1,45 +1,125 @@
-import 'file:///D:/AndroidStudioProjects/house_inventory/lib/widgets/appbar.dart';
+import 'dart:async';
+import 'dart:developer';
+import 'dart:io';
+import 'package:houseinventory/model/item.dart';
+import '../../widgets/appbar.dart';
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:houseinventory/data/process_data.dart';
-import 'package:houseinventory/model/item.dart';
-import 'package:houseinventory/model/item_location.dart';
+import 'package:http/http.dart' as http;
+import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/widgets/item_card.dart';
 import 'package:houseinventory/widgets/loading_dialog.dart';
 import 'package:houseinventory/widgets/search_box.dart';
 
-class LocationViewPage extends StatelessWidget {
+// ignore: must_be_immutable
+class LocationViewPage extends StatefulWidget {
   static const String route = '/Location';
-  final int locationId;
-  ItemLocation itemLocation;
-  List<Widget> itemBoxes = List<Widget>();
-  LocationViewPage(this.locationId) {
-    itemLocation = ProcessData.itemsData
-        .firstWhere((element) => (this.locationId == element.id));
-    if (itemLocation.items.length > 0) {
-      itemLocation.items.forEach((Item item) {
-        itemBoxes.add(ItemBox(itemLocation.id, item.name, item.id));
-      });
-    }
-    else {
-      itemBoxes = [Container()];
-    }
+  final int placeId;
+  String locationName;
+
+  LocationViewPage(this.placeId);
+
+  @override
+  _LocationViewPageState createState() => _LocationViewPageState();
+
+
+
+}
+
+class _LocationViewPageState extends State<LocationViewPage> {
+
+  List<Widget> _itemBoxes = List<Widget>();
+  String _appBarText = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _getItems();
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+
+  Future<void> _getItems() async {
+    List<Widget> itemBoxes = List<Widget>();
+    try {
+      http.Response response = await http.post(
+        Constants.apiURL + '/api/items/list',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          "by": "modified",
+          "pid": widget.placeId,
+          "order": "DESC",
+          "user_hash": sharedPrefs.getString("hash1")
+        }),
+      ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
+      if (response != null && response.statusCode == 200) {
+        var jsonData = jsonDecode(response.body);
+        if(jsonData['result'] == true ){
+          List<dynamic> items = jsonData['items'];
+          for(var i = 0; i < items.length; i++) {
+            var item = items[i];
+            itemBoxes.add(new ItemBox(Item(item['name'].toString(), item['iid'], item['placeName'], item['created'], item['modified'])));
+            if(i == items.length - 1) {
+              setState(() {
+                _itemBoxes = itemBoxes;
+                widget.locationName = item['placeName'];
+                _appBarText = item['placeName'];
+              });
+            }
+          }
+        }
+        else {
+          _requestError('Request Error.');
+        }
+      }
+      else {
+        _requestError('Request Error.');
+      }
+    } on SocketException catch(e) {
+      _requestError('You are not connected to internet.');
+      log(e.toString());
+    }
+    on TimeoutException catch(e) {
+      _requestError('Server time out.');
+      log(e.toString());
+    }
+    catch (exception) {
+      _requestError('Network Error.');
+      log(exception.toString());
+    }
+  }
+
+  _requestError(text) {
+    final snackBar = SnackBar(content: Text(text, style: TextStyle(color: Colors.white),), backgroundColor: Colors.red, duration: Duration(seconds: 2),);
+    Scaffold.of(context).hideCurrentSnackBar();
+    Scaffold.of(context).showSnackBar(snackBar);
+  }
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: CustomAppBar(itemLocation.name + ' Items'),
+        appBar: CustomAppBar(_appBarText),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
             // Add your onPressed code here!
             showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (_) {
-                  return AddItemDialog(itemLocation);
-                });
+                builder: (context) => Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: Builder(
+                    builder: (context) {
+                      return AddItemDialog(widget.placeId, context);
+                    }
+                  )
+                ));
             //_displayDialog(context);
           },
           label: Text('Item', style: TextStyle(color: Colors.black54)),
@@ -49,28 +129,25 @@ class LocationViewPage extends StatelessWidget {
           backgroundColor: Colors.amber,
         ),
         body: Container(
-          margin: EdgeInsets.all(20),
           child: Column(
             children: [
               SearchBox(),
-              itemLocation.items.length > 0 ? Expanded(
-                child: SingleChildScrollView(
-                  child: SizedBox(
-                    height: itemLocation.items.length * 88.0,
-                    // or something simular :)
-                    child: new Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        new Expanded(
-                          child: Column(
-                            children: this.itemBoxes,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ) : Container(
+              _itemBoxes.length > 0 ? Expanded(
+                child: RefreshIndicator(
+                  onRefresh: _getItems,
+                  child: SingleChildScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      child: Container(
+                        alignment: Alignment.topLeft,
+                        width: MediaQuery.of(context).size.width * 0.90,
+                        margin: EdgeInsets.only(bottom: 80),
+                        child: Wrap(
+                          direction: Axis.horizontal,
+                          children: _itemBoxes,
+                        )
+                      ),
+              ),
+                )) : Container(
                 alignment: Alignment.center,
                 margin: EdgeInsets.only(top: 30),
                 child: Text('No item yet.', style: TextStyle(fontSize: 17),),
@@ -82,8 +159,9 @@ class LocationViewPage extends StatelessWidget {
 }
 
 class AddItemDialog extends StatefulWidget {
-  ItemLocation itemLocation;
-  AddItemDialog(this.itemLocation);
+  final int itemLocation;
+  final BuildContext context;
+  AddItemDialog(this.itemLocation, this.context);
 
   @override
   _AddItemDialogState createState() => _AddItemDialogState();
@@ -135,36 +213,79 @@ class _AddItemDialogState extends State<AddItemDialog> {
       );
     });
   }
-  _submitForm() {
-
+  _submitForm() async {
     // validate at least 1 field is not empty
     bool isValid = false;
-    
+
     // read items from text field and add it to a list
     List<String> itemNames = List<String>();
     controllers.forEach((element) {
-      if(element.text.toString().length > 0) {
+      if (element.text
+          .toString()
+          .length > 0) {
         isValid = true;
         itemNames.add(element.text.toString());
       }
     });
 
     if (isValid) {
-      Map<String, dynamic> jsonRaw = {
-        "key": "abc",
-        "key2": 123,
-        "key3": "xyz",
-        "items": itemNames
-      };
-      print(jsonRaw);
-
       setState(() {
         isLoading = true;
       });
-      new Future.delayed(new Duration(seconds: 3), () {
-        Navigator.pop(context); //pop dialog
-      });
+
+      Map<String, dynamic> jsonRaw = {
+        "pid": widget.itemLocation,
+        "user_hash": sharedPrefs.getString("hash1"),
+        "items": itemNames
+      };
+    try {
+
+      http.Response response = await http.post(
+        Constants.apiURL + '/api/items/new',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(jsonRaw),
+      ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
+      if (response != null && response.statusCode == 200) {
+        var jsonData = jsonDecode(response.body);
+        if (jsonData['result'] == true) {
+          setState(() {
+            isLoading = false;
+          });
+         // widget.refresh();
+          Navigator.pop(context);
+          Navigator.pushReplacementNamed(context, LocationViewPage.route + "/" + widget.itemLocation.toString()); //pop dialog
+
+        } else {
+         _requestError('Request Failed.');
+        }
+      }
+      else {
+        _requestError('Request Failed.');
+      }
+    } on SocketException catch(e) {
+      _requestError('You are not connected to internet.');
+      log(e.toString());
     }
+    on TimeoutException catch(e) {
+      _requestError('Server time out.');
+      log(e.toString());
+    }
+    catch (exception) {
+      _requestError('Network Error.');
+      log(exception.toString());
+    }
+  }
+  }
+
+  _requestError(text) {
+    final snackBar = SnackBar(content: Text(text, style: TextStyle(color: Colors.white),), backgroundColor: Colors.red, duration: Duration(seconds: 2),);
+    Scaffold.of(widget.context).hideCurrentSnackBar();
+    Scaffold.of(widget.context).showSnackBar(snackBar);
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -173,7 +294,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
       elevation: 12,
       scrollable: true,
       //contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 100),
-      title: Text('Add Items to ' + widget.itemLocation.name, style: TextStyle(
+      title: Text('Add Items', style: TextStyle(
         fontSize: 16,
       )),
       shape: RoundedRectangleBorder(

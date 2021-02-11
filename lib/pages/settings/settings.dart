@@ -53,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       SettingListItemBool('List Newer Items First',
                           'Order items from newest to oldest.', 'test_1', true),
                       SettingListItemBool('Colorize Items Randomly',
-                          'Item colors will change each time.', 'test_2', true),
+                          'Item colors will change each time.', 'randomItemColor', true),
                       SettingGroupLabel('Language Settings'),
                       SettingListItemSelect(
                           'System Language',

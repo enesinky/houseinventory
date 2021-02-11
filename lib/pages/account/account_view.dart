@@ -5,13 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:houseinventory/pages/start/start.dart';
 import 'package:houseinventory/util/contants.dart';
-import 'package:houseinventory/util/huawei_account.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:houseinventory/widgets/appbar.dart';
 import 'package:http/http.dart' as http;
-import 'package:huawei_account/auth/auth_huawei_id.dart';
-import 'package:huawei_account/hms_account.dart';
-import 'package:intl/date_symbol_data_file.dart';
 import 'package:intl/intl.dart';
 
 
@@ -32,6 +28,7 @@ class _AccountViewPageState extends State<AccountViewPage> {
   @override
   void initState() {
     super.initState();
+    requestUserInfo();
     isLoading = true;
   }
 
@@ -50,7 +47,8 @@ class _AccountViewPageState extends State<AccountViewPage> {
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, String>{
-          "token":  sharedPrefs.getString("token")
+          "hash1":  sharedPrefs.getString("hash1"),
+          "hash2":  sharedPrefs.getString("hash2")
         }),
       ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
       if (response != null && response.statusCode == 200) {
@@ -135,8 +133,8 @@ class _AccountViewPageState extends State<AccountViewPage> {
     );
   }
   void logoutProcedure() {
-    sharedPrefs.setString("token", null);
-    sharedPrefs.setString("secure_key", null);
+    sharedPrefs.setString("hash1", null);
+    sharedPrefs.setString("hash2", null);
     Navigator.of(context).popUntil((route) => route.isFirst);
     Navigator.of(context).pushReplacementNamed(StartPage.route);
   }
@@ -175,15 +173,10 @@ class _AccountViewPageState extends State<AccountViewPage> {
 
   @override
   Widget build(BuildContext context) {
-    requestUserInfo();
+
     if (userInfo != null) {
-      secureKey = userInfo['user']['secure_key'].toString().substring(0, 15) +
-          '****************' +
-          userInfo['user']['secure_key'].toString().substring(31, 39) +
-          '****************' +
-          userInfo['user']['secure_key'].toString().substring(55, userInfo['user']['secure_key'].toString().length);
       var formatter = new DateFormat('d MMMM, yyyy');
-      joinedDate = formatter.format(DateTime.parse(userInfo['user']['created']));
+      joinedDate = formatter.format(DateTime.parse(userInfo['created']));
     }
 
 
@@ -204,21 +197,19 @@ class _AccountViewPageState extends State<AccountViewPage> {
                     shape: BoxShape.circle,
                     image: DecorationImage(
                         fit: BoxFit.fill,
-                        image: (userInfo['user']['avatar'] == '') ? ExactAssetImage('assets/images/blank-profile-photo.png') : NetworkImage(userInfo['user']['avatar']),
+                        image: (userInfo['avatar'] == '/') ? ExactAssetImage('assets/images/blank-profile-photo.png') : NetworkImage(userInfo['avatar']),
                     )
                 )),
               SizedBox(height: 10,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  userInfo['user']['hw_open_id'] == '' ? Container() : Image.asset('assets/images/btn_48x48_hw_singin_light_red.png', width: 32, height: 32,), SizedBox(width: 5,),
-                  Text(userInfo['user']['name'].toString().toUpperCase(), textScaleFactor: 1.2, style: TextStyle(color: Colors.black38, fontWeight: FontWeight.bold),),
+                  userInfo['huawei_open_id'] == '' ? Container() : Image.asset('assets/images/btn_48x48_hw_singin_light_red.png', width: 32, height: 32,), SizedBox(width: 5,),
+                  Text(userInfo['name'].toString().toUpperCase(), textScaleFactor: 1.2, style: TextStyle(color: Colors.black38, fontWeight: FontWeight.bold),),
                 ],
               ),
               SizedBox(height: 20,),
-              userInfo['user']['hw_open_id'] != '' ? Container() : accountRow(Text('Email:', style: accountRowLabelTextStyle,), userInfo['user']['hw_id_token'] == '' ? Text(userInfo['user']['email'].toString().toLowerCase(), style: accountRowFieldTextStyle,) : Text('(Signed With Huawei ID)', style: accountRowFieldTextStyle)),
-              //accountRow(Text('Name:', style: accountRowLabelTextStyle,), Text(userInfo['user']['name'].toString().toUpperCase(), style: accountRowFieldTextStyle)),
-              accountRow(Text('Encryption Key:', style: accountRowLabelTextStyle,), Text(secureKey, style: accountRowFieldTextStyle)),
+              accountRow(Text('Email:', style: accountRowLabelTextStyle,),  Text(userInfo['huawei_open_id'] == '' ? (userInfo['email']).toString().toLowerCase() : '(Signed With Huawei ID)', style: accountRowFieldTextStyle,)),
               accountRow(Text('Joined Date:', style: accountRowLabelTextStyle,), Text(joinedDate, style: accountRowFieldTextStyle)),
               SizedBox(height: 40,),
               FlatButton(

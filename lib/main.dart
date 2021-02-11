@@ -1,8 +1,6 @@
 import 'package:houseinventory/pages/start/start.dart';
 import 'package:houseinventory/util/login_handler.dart';
 import 'package:houseinventory/util/route_configuration.dart';
-
-import 'data/process_data.dart';
 import 'pages/home/tabs.dart';
 import 'util/shared_prefs.dart';
 import 'package:flutter/material.dart';
@@ -11,15 +9,16 @@ import 'package:flutter/services.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await sharedPrefs.init();
-  await processData.init();
   bool isLoggedIn = await loginHandler.init();
   runApp(
     MyApp(isLoggedIn),
   );
+
+
 }
 
 class MyApp extends StatelessWidget {
-  var isLoggedIn;
+  final bool isLoggedIn;
   MyApp(this.isLoggedIn);
 
 

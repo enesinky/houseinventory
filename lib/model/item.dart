@@ -1,8 +1,11 @@
 class Item {
   String name;
-  int id;
+  int iid;
+  String placeName;
+  String created;
+  String modified;
 
-  Item(this.name, this.id);
+  Item(this.name, this.iid, this.placeName, this.created, this.modified);
 
 }
 

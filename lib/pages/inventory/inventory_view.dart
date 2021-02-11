@@ -1,15 +1,122 @@
-import 'package:houseinventory/data/process_data.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:developer';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:houseinventory/widgets/loading_dialog.dart';
+import 'package:houseinventory/util/shared_prefs.dart';
+import 'package:houseinventory/widgets/location_card.dart';
+import 'package:http/http.dart' as http;
+import 'package:houseinventory/util/contants.dart';
+import '../../widgets/appbar.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
-  import '../../widgets/appbar.dart';
-  import 'package:flutter/cupertino.dart';
-  import 'package:flutter/material.dart';
-
-  class InventoryViewPage extends StatelessWidget {
+  class InventoryViewPage extends StatefulWidget {
     static const String route = '/Inventory';
+
+    @override
+    _InventoryViewPageState createState() => _InventoryViewPageState();
+  }
+
+class _InventoryViewPageState extends State<InventoryViewPage> {
+
+  var isLoading ;
+  List<String> _placesNamesLoaded = List<String>();
+  List<String> _placesNamesRetrieved = List<String>();
+  List<Widget> _locationCards = [Container()];
+
+  @override
+  void initState() {
+    super.initState();
+    isLoading = true;
+  }
+
+
+  @override
+  void dispose() {
+    super.dispose();
+    isLoading = true;
+  }
+
+  refresh() {
+    setState(() {
+
+    });
+  }
+
+  getPlaces() async {
+    print("getting places");
+    // initialize widget list
+    List<Widget> locationCards = List<Widget>();
+
+    try {
+      http.Response response = await http.post(
+        Constants.apiURL + '/api/places/list',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          "by": "created",
+          "order": "DESC",
+          "user_hash": sharedPrefs.getString("hash1")
+        }),
+      ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
+      if (response != null && response.statusCode == 200) {
+        var jsonData = jsonDecode(response.body);
+      if(jsonData['result'] == true ){
+        List<dynamic> places = jsonData['places'];
+
+          _placesNamesRetrieved.clear();
+          for(var i = 0; i < places.length; i++) {
+            var place = places[i];
+            _placesNamesRetrieved.add(place['name'].toString());
+            locationCards.add(LocationCard(place['name'].toString(), place['itemCount'], place['pid']));
+            if(i == places.length-1 && !listEquals(_placesNamesRetrieved, _placesNamesLoaded)) {
+              print("load new places");
+              setState(() {
+                _placesNamesLoaded.clear();
+                _placesNamesLoaded.addAll(_placesNamesRetrieved);
+                _locationCards = locationCards;
+              });
+            }
+          }
+      }
+        else {
+          _requestError('Request Failed.');
+        }
+      }
+      else {
+        _requestError('Request Failed.');
+      }
+    } on SocketException catch(e) {
+      _requestError('You are not connected to internet.');
+      log(e.toString());
+    }
+    on TimeoutException catch(e) {
+      _requestError('Server time out.');
+      log(e.toString());
+    }
+    catch (exception) {
+      _requestError('Network Error.');
+      log(exception.toString());
+    }
+
+  }
+
+  _requestError(text) {
+    final snackBar = SnackBar(content: Text(text, style: TextStyle(color: Colors.white),), backgroundColor: Colors.red, duration: Duration(seconds: 2),);
+    Scaffold.of(context).hideCurrentSnackBar();
+    Scaffold.of(context).showSnackBar(snackBar);
+  }
+
+  Future<void> _refreshPlaces() async {
+      getPlaces();
+  }
 
   @override
     Widget build(BuildContext context) {
+    getPlaces();
       return Scaffold(
           appBar: CustomAppBar('Inventory List'),
           floatingActionButton: FloatingActionButton(
@@ -17,9 +124,14 @@ import 'package:houseinventory/widgets/loading_dialog.dart';
               showDialog(
                   context: context,
                   barrierDismissible: false,
-                  builder: (_) {
-                    return AddPlaceDialog();
-                  });
+                  builder: (context) => Scaffold(
+                      backgroundColor: Colors.transparent,
+                      body: Builder(
+                          builder: (context) {
+                            return AddPlaceDialog(context, refresh);
+                          }
+                      )
+                  ));
             },
             //label: Text('Place'),
             mini: true,
@@ -29,27 +141,45 @@ import 'package:houseinventory/widgets/loading_dialog.dart';
             backgroundColor: Colors.blueGrey,
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-          body: Center(
-              child:
-              Column(
-                children: [
-                  Expanded(
-                      child:
-                      ListView(
-                          scrollDirection: Axis.vertical,
-                          //padding: EdgeInsets.all(16),
-                          children: ProcessData.locationDataCards
-
-                      ))
-                  ],
-              ))
+          body: Container(
+            child: Column(
+              children: [
+                _locationCards.length > 0 ? Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: _refreshPlaces,
+                      child: SingleChildScrollView(
+                        physics: AlwaysScrollableScrollPhysics(),
+                        child: Center(
+                          child: Container(
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              margin: EdgeInsets.only(top: 16, bottom: 80),
+                              child: Wrap(
+                                direction: Axis.horizontal,
+                                children: _locationCards,
+                              )
+                          ),
+                        ),
+                      ),
+                    )) : Container(
+                  alignment: Alignment.center,
+                  margin: EdgeInsets.only(top: 30),
+                  child: Text('Add a location in your inventory.', style: TextStyle(fontSize: 17),),
+                ),
+              ],
+            ),
+          )
       );
     }
+
 
   }
 
 
   class AddPlaceDialog extends StatefulWidget {
+    final BuildContext context;
+    final Function f;
+    AddPlaceDialog(this.context, this.f);
+
     @override
     _AddPlaceDialogState createState() => _AddPlaceDialogState();
   }
@@ -60,24 +190,63 @@ import 'package:houseinventory/widgets/loading_dialog.dart';
 
     TextEditingController textEditingController = new TextEditingController();
 
-    _submitForm() {
+    _submitForm() async {
 
-      if (textEditingController.text.toString().length > 0) {
-        Map<String, dynamic> jsonRaw = {
-          "key": "inventory_page",
-          "key2": 123,
-          "key3": "xyz",
-          "place": textEditingController.text.toString()
-        };
-        print(jsonRaw);
-
+      if (textEditingController.text.toString().length >= 3) {
         setState(() {
           isLoading = true;
         });
-        new Future.delayed(new Duration(seconds: 3), () {
-          Navigator.pop(context); //pop dialog
-        });
+
+        try {
+          http.Response response = await http.post(
+            Constants.apiURL + '/api/places/new',
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            },
+            body: jsonEncode(<String, String>{
+              "name": textEditingController.text.toString(),
+              "user_hash": sharedPrefs.getString("hash1")
+            }),
+          ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
+          if (response != null && response.statusCode == 200) {
+            var jsonData = jsonDecode(response.body);
+            if(jsonData['result'] == true) {
+              setState(() {
+                isLoading = false;
+              });
+              Navigator.pop(context);
+              widget.f();
+            }
+            else {
+              _requestError('Request Failed.');
+            }
+          }
+          else {
+            _requestError('Request Failed.');
+          }
+        } on SocketException catch(e) {
+          _requestError('You are not connected to internet.');
+          log(e.toString());
+        }
+        on TimeoutException catch(e) {
+          _requestError('Server time out.');
+          log(e.toString());
+        }
+        catch (exception) {
+          _requestError('Network Error.');
+          log(exception.toString());
+        }
+
       }
+    }
+
+    _requestError(text) {
+      final snackBar = SnackBar(content: Text(text, style: TextStyle(color: Colors.white),), backgroundColor: Colors.red, duration: Duration(seconds: 2),);
+      Scaffold.of(widget.context).hideCurrentSnackBar();
+      Scaffold.of(widget.context).showSnackBar(snackBar);
+      setState(() {
+        isLoading = false;
+      });
     }
 
     _dialogTextFieldDecoration() {

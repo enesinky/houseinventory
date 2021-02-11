@@ -22,8 +22,8 @@ class RouteConfiguration {
           (context, List matches) => LocationViewPage(int.parse(matches[0])),
     ),
     Path(
-      r'^\/Item\/([0-9]+)\/([0-9]+)$',
-          (context, List matches) => ItemViewPage(int.parse(matches[0]), int.parse(matches[1])),
+      r'^\/Item\/([0-9]+)$',
+          (context, List matches) => ItemViewPage(int.parse(matches[0])),
     ),
     Path(
       r'^' + StartPage.route,

@@ -5,6 +5,12 @@ class SharedPrefs {
   init() async {
     if (_sharedPrefs == null) {
       _sharedPrefs = await SharedPreferences.getInstance();
+      if(_sharedPrefs.getInt("itemsSortBy") == null) {
+        _sharedPrefs.setInt("itemsSortBy", 1);
+      }
+      if(_sharedPrefs.getInt("itemsOrderBy") == null) {
+        _sharedPrefs.setInt("itemsOrderBy", 0);
+      }
     }
   }
   bool getBool(String sharedPrefParam) {

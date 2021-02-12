@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:houseinventory/model/location.dart';
 import 'package:houseinventory/widgets/loading_dialog.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:houseinventory/widgets/location_card.dart';
@@ -22,9 +22,9 @@ import 'package:flutter/material.dart';
 class _InventoryViewPageState extends State<InventoryViewPage> {
 
   var isLoading ;
-  List<String> _placesNamesLoaded = List<String>();
-  List<String> _placesNamesRetrieved = List<String>();
-  List<Widget> _locationCards = [Container()];
+  List<Location> _currentLocations = List<Location>();
+  List<Location> _loadedLocations = List<Location>();
+  List<Widget> _locationCards = List<Widget>();
 
   @override
   void initState() {
@@ -48,7 +48,7 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
   getPlaces() async {
     print("getting places");
     // initialize widget list
-    List<Widget> locationCards = List<Widget>();
+    List<LocationCard> locationCards = List<LocationCard>();
 
     try {
       http.Response response = await http.post(
@@ -66,18 +66,22 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
         var jsonData = jsonDecode(response.body);
       if(jsonData['result'] == true ){
         List<dynamic> places = jsonData['places'];
-
-          _placesNamesRetrieved.clear();
+        _loadedLocations.clear();
           for(var i = 0; i < places.length; i++) {
             var place = places[i];
-            _placesNamesRetrieved.add(place['name'].toString());
-            locationCards.add(LocationCard(place['name'].toString(), place['itemCount'], place['pid']));
-            if(i == places.length-1 && !listEquals(_placesNamesRetrieved, _placesNamesLoaded)) {
-              print("load new places");
+            Location loc = Location(place['pid'], place['name'].toString(), place['itemCount']);
+            _loadedLocations.add(loc);
+            locationCards.add(LocationCard(loc));
+            if(i == places.length-1 && hasLocationUpdated(_currentLocations, _loadedLocations)) {
               setState(() {
-                _placesNamesLoaded.clear();
-                _placesNamesLoaded.addAll(_placesNamesRetrieved);
-                _locationCards = locationCards;
+                _currentLocations.clear();
+                _currentLocations.addAll(_loadedLocations);
+                _locationCards.clear();
+                //locationCards.sort((a, b) => a.location.name.compareTo(b.location.name));
+                locationCards.forEach((element) {
+                  _locationCards.add(element);
+                });
+
               });
             }
           }
@@ -102,6 +106,22 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
       log(exception.toString());
     }
 
+  }
+
+  bool hasLocationUpdated(List<Location> var1, List<Location> var2) {
+    bool result = false;
+    if(var1.isNotEmpty) {
+      var2.forEach((loc2) {
+        bool isUpdated = var1.where((loc1) => loc2.pid == loc1.pid && loc2.name == loc1.name && loc2.itemCount == loc1.itemCount).isEmpty;
+        print(isUpdated.toString());
+        if(isUpdated) result = true;
+      });
+    }
+    else {
+      result = true;
+    }
+
+    return result;
   }
 
   _requestError(text) {

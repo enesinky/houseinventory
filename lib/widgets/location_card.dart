@@ -1,14 +1,12 @@
+import 'package:houseinventory/model/location.dart';
 import 'package:houseinventory/pages/inventory/location_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 
 class LocationCard extends StatelessWidget {
-  final String name;
-  final int itemCount;
-  final int _locationId;
-
-  LocationCard(this.name, this.itemCount, this._locationId);
+   Location location;
+  LocationCard(this.location);
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +19,9 @@ class LocationCard extends StatelessWidget {
         borderRadius: BorderRadius.all(Radius.circular(boxSize)),
         splashColor: Colors.amber,
         hoverColor: Colors.yellow,
+
         onTap: () {
-          var navigateUrl = LocationViewPage.route + '/' + _locationId.toString();
+          var navigateUrl = LocationViewPage.route + '/' + this.location.pid.toString();
           Navigator.pushNamed(context, navigateUrl);
         },
         child: Container(
@@ -41,7 +40,7 @@ class LocationCard extends StatelessWidget {
                     Container(
                       child: Flexible(
                           child: Text(
-                            name,
+                            this.location.name,
                             overflow: TextOverflow.fade,
                             maxLines: 3,
                             style: TextStyle(
@@ -60,7 +59,7 @@ class LocationCard extends StatelessWidget {
                     Container(
                       child: Flexible(
                           child: Text(
-                            itemCount.toString() + (itemCount < 2 ? ' item' : ' items.'),
+                            this.location.itemCount.toString() + (this.location.itemCount < 2 ? ' item' : ' items.'),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: TextStyle(color: Colors.black38, fontSize: 14),

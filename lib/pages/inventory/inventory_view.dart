@@ -6,6 +6,7 @@ import 'package:houseinventory/model/location.dart';
 import 'package:houseinventory/widgets/loading_dialog.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:houseinventory/widgets/location_card.dart';
+import 'package:houseinventory/widgets/sort_box.dart';
 import 'package:http/http.dart' as http;
 import 'package:houseinventory/util/contants.dart';
 import '../../widgets/appbar.dart';
@@ -22,9 +23,14 @@ import 'package:flutter/material.dart';
 class _InventoryViewPageState extends State<InventoryViewPage> {
 
   var isLoading ;
-  List<Location> _currentLocations = List<Location>();
-  List<Location> _loadedLocations = List<Location>();
-  List<Widget> _locationCards = List<Widget>();
+
+  // invisible objects for checking update
+  List<Location> currentLocationsObjects = List<Location>();
+  List<Location> loadedLocationsObjects = List<Location>();
+
+  // visible objects for sorting cards
+  List<LocationCard> loadedLocationCards = List<LocationCard>();
+  List<Widget> currentLocationCards = List<Widget>();
 
   @override
   void initState() {
@@ -47,8 +53,6 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
 
   getPlaces() async {
     print("getting places");
-    // initialize widget list
-    List<LocationCard> locationCards = List<LocationCard>();
 
     try {
       http.Response response = await http.post(
@@ -66,22 +70,17 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
         var jsonData = jsonDecode(response.body);
       if(jsonData['result'] == true ){
         List<dynamic> places = jsonData['places'];
-        _loadedLocations.clear();
+        loadedLocationsObjects.clear();
+        loadedLocationCards.clear();
           for(var i = 0; i < places.length; i++) {
             var place = places[i];
-            Location loc = Location(place['pid'], place['name'].toString(), place['itemCount']);
-            _loadedLocations.add(loc);
-            locationCards.add(LocationCard(loc));
-            if(i == places.length-1 && hasLocationUpdated(_currentLocations, _loadedLocations)) {
+            Location loc = Location(place['pid'], place['name'].toString(), place['itemCount'], place['created'], place['modified']);
+            loadedLocationsObjects.add(loc);
+            loadedLocationCards.add(new LocationCard(loc));
+            if(i == places.length-1 && hasLocationUpdated(currentLocationsObjects, loadedLocationsObjects)) {
               setState(() {
-                _currentLocations.clear();
-                _currentLocations.addAll(_loadedLocations);
-                _locationCards.clear();
-                //locationCards.sort((a, b) => a.location.name.compareTo(b.location.name));
-                locationCards.forEach((element) {
-                  _locationCards.add(element);
-                });
-
+                currentLocationsObjects = loadedLocationsObjects;
+                sortLocations(sharedPrefs.getInt("placesSortBy"), sharedPrefs.getInt("placesOrderBy"));
               });
             }
           }
@@ -134,6 +133,48 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
       getPlaces();
   }
 
+  sortLocations(int sort, int order) {
+
+    switch(sort) {
+      case 0:
+        loadedLocationCards.sort(
+                (a, b) => order == 0 ?
+            a.location.name.toLowerCase().compareTo(b.location.name.toLowerCase()) :
+            b.location.name.toLowerCase().compareTo(a.location.name.toLowerCase())
+        );
+        break;
+      case 1:
+        loadedLocationCards.sort(
+                (a, b) => order == 0 ?
+                b.location.itemCount.compareTo(a.location.itemCount) :
+                a.location.itemCount.compareTo(b.location.itemCount)
+        );
+        break;
+      case 2:
+        loadedLocationCards.sort(
+                (a, b) => order == 0 ?
+            DateTime.parse(a.location.modified).compareTo(DateTime.parse(b.location.modified)) :
+            DateTime.parse(b.location.modified).compareTo(DateTime.parse(a.location.modified))
+        );
+        break;
+      case 3:
+        loadedLocationCards.sort(
+                (a, b) => order == 0 ?
+            DateTime.parse(a.location.created).compareTo(DateTime.parse(b.location.created)) :
+            DateTime.parse(b.location.created).compareTo(DateTime.parse(a.location.created))
+        );
+        break;
+    }
+
+    setState(() {
+      currentLocationCards.clear();
+      loadedLocationCards.forEach((element) {
+        currentLocationCards.add(element);
+      });
+    });
+
+  }
+
   @override
     Widget build(BuildContext context) {
     getPlaces();
@@ -161,31 +202,51 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
             backgroundColor: Colors.blueGrey,
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-          body: Container(
-            child: Column(
-              children: [
-                _locationCards.length > 0 ? Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: _refreshPlaces,
-                      child: SingleChildScrollView(
-                        physics: AlwaysScrollableScrollPhysics(),
-                        child: Center(
-                          child: Container(
-                              width: MediaQuery.of(context).size.width * 0.9,
-                              margin: EdgeInsets.only(top: 16, bottom: 80),
-                              child: Wrap(
-                                direction: Axis.horizontal,
-                                children: _locationCards,
-                              )
+          body: Center(
+            child: Container(
+              alignment: Alignment.topLeft,
+              width: MediaQuery.of(context).size.width * 0.90,
+              child: Column(
+                children: [
+                  currentLocationCards.length > 1 ? SortBox(
+                      onSortChange: (int sort, int order) {
+                        setState(() {
+                          sortLocations(sort, order);
+                        });
+                      },
+                      sortingOptions: ['Alphabetically', 'Item Count', 'Date Modified','Date Created'],
+                      orderingOptions: [
+                        ["A to Z", "Z to A"],
+                        ["Most to Least", "Least to Most"],
+                        ["Oldest Items First", "Newest Items First"],
+                        ["Oldest Items First", "Newest Items First"]
+                      ],
+                    sortMethodSharedPref: "placesSortBy",
+                    orderMethodSharedPref: "placesOrderBy",
+                  ) : Container(),
+                  currentLocationCards.length > 0 ? Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: _refreshPlaces,
+                        child: SingleChildScrollView(
+                          physics: AlwaysScrollableScrollPhysics(),
+                          child: Center(
+                            child: Container(
+                                width: MediaQuery.of(context).size.width * 0.9,
+                                margin: EdgeInsets.only(top: 16, bottom: 80),
+                                child: Wrap(
+                                  direction: Axis.horizontal,
+                                  children: currentLocationCards,
+                                )
+                            ),
                           ),
                         ),
-                      ),
-                    )) : Container(
-                  alignment: Alignment.center,
-                  margin: EdgeInsets.only(top: 30),
-                  child: Text('Add a location in your inventory.', style: TextStyle(fontSize: 17),),
-                ),
-              ],
+                      )) : Container(
+                    alignment: Alignment.center,
+                    margin: EdgeInsets.only(top: 30),
+                    child: Text('Add a location in your inventory.', style: TextStyle(fontSize: 17),),
+                  ),
+                ],
+              ),
             ),
           )
       );

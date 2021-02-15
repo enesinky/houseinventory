@@ -11,6 +11,12 @@ class SharedPrefs {
       if(_sharedPrefs.getInt("itemsOrderBy") == null) {
         _sharedPrefs.setInt("itemsOrderBy", 0);
       }
+      if(_sharedPrefs.getInt("placesSortBy") == null) {
+        _sharedPrefs.setInt("placesSortBy", 1);
+      }
+      if(_sharedPrefs.getInt("placesOrderBy") == null) {
+        _sharedPrefs.setInt("placesOrderBy", 0);
+      }
     }
   }
   bool getBool(String sharedPrefParam) {

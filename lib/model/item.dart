@@ -4,8 +4,9 @@ class Item {
   String placeName;
   String created;
   String modified;
+  bool isCardSelected;
 
-  Item(this.name, this.iid, this.placeName, this.created, this.modified);
+  Item(this.name, this.iid, this.placeName, this.created, this.modified, this.isCardSelected);
 
 }
 

@@ -49,10 +49,10 @@ class _ItemViewPageState extends State<ItemViewPage> {
         var jsonData = jsonDecode(response.body);
         if(jsonData['result'] == true ){
 
-          setState(() {
-            item = Item(jsonData['name'].toString(), jsonData['iid'], jsonData['placeName'].toString(),
-                jsonData['created'].toString(), jsonData['modified'].toString());
-          });
+          // setState(() {
+          //   item = Item(jsonData['name'].toString(), jsonData['iid'], jsonData['placeName'].toString(),
+          //       jsonData['created'].toString(), jsonData['modified'].toString());
+          // });
 
         }
         else {

@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:houseinventory/main.dart';
 import 'package:houseinventory/model/item.dart';
+import 'package:houseinventory/widgets/dialog_add_item.dart';
 import 'package:houseinventory/widgets/sort_box.dart';
 import '../../widgets/appbar.dart';
 import 'dart:convert';
@@ -11,13 +13,10 @@ import 'package:http/http.dart' as http;
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/widgets/item_card.dart';
-import 'package:houseinventory/widgets/loading_dialog.dart';
 
-// ignore: must_be_immutable
 class LocationViewPage extends StatefulWidget {
   static const String route = '/Location';
   final int placeId;
-  String locationName;
 
   LocationViewPage(this.placeId);
 
@@ -28,6 +27,10 @@ class LocationViewPage extends StatefulWidget {
 class _LocationViewPageState extends State<LocationViewPage> {
   List<Widget> currentItemBoxes = List<Widget>();
   List<ItemBox> loadedItemBoxes = List<ItemBox>();
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool cardSelectionMode = false;
+  String locationName = "";
   String appBarText = "";
 
 
@@ -63,20 +66,83 @@ class _LocationViewPageState extends State<LocationViewPage> {
         if (jsonData['result'] == true) {
           List<dynamic> items = jsonData['items'];
           loadedItemBoxes.clear();
-          for (var i = 0; i < items.length; i++) {
-            var item = items[i];
-            loadedItemBoxes.add(new ItemBox(Item(item['name'].toString(), item['iid'],
-                item['placeName'], item['created'], item['modified'])));
-            if (i == items.length - 1) {
-              setState(() {
-                sortItems(sharedPrefs.getInt("itemsSortBy"), sharedPrefs.getInt("itemsOrderBy"));
-                widget.locationName = item['placeName'];
-                appBarText = item['placeName'];
-              });
+          if(items.length > 0) {
+            for (var i = 0; i < items.length; i++) {
+              var item = items[i];
+              var itemObject = Item(item['name'].toString(), item['iid'],
+                  item['placeName'], item['created'], item['modified'], false);
+
+              loadedItemBoxes.add(new ItemBox(
+                item: itemObject,
+                isSelected: itemObject.isCardSelected,
+                onLongPress: (iid) {
+                  _onLongPress(iid);
+                },
+                onTap: (iid) {
+                  _onTap(iid);
+                },
+              ));
+              if (i == items.length - 1) {
+                setState(() {
+                  sortItems(sharedPrefs.getInt("itemsSortBy"), sharedPrefs.getInt("itemsOrderBy"));
+                  locationName = item['placeName'];
+                  appBarText = item['placeName'];
+                });
+              }
             }
+          } else {
+            setState(() {
+              currentItemBoxes.clear();
+            });
           }
+
         } else {
           _requestError('Request Error.');
+        }
+      } else {
+        _requestError('Request Error.');
+      }
+    } on SocketException catch (e) {
+     _requestError('You are not connected to internet.');
+      log(e.toString());
+    } on TimeoutException catch (e) {
+     _requestError('Server time out.');
+      log(e.toString());
+    } catch (exception) {
+     _requestError('Network Error.');
+      log(exception.toString());
+    }
+  }
+
+  Future<void> _deleteItems() async {
+    try {
+      List<int> iids = List<int>();
+      loadedItemBoxes.where((element) => element.isSelected).forEach((el) {
+        iids.add(el.item.iid);
+      });
+      http.Response response = await http
+          .post(
+        Constants.apiURL + '/api/items/delete',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          "iid": iids,
+          "user_hash": sharedPrefs.getString("hash1")
+        }),
+      )
+          .timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
+      if (response != null && response.statusCode == 200) {
+        var jsonData = jsonDecode(response.body);
+        if (jsonData['result'] == true) {
+          setState(() {
+            cardSelectionMode = false;
+            _getItems();
+          });
+          _deletionSuccess("("+iids.length.toString()+") "+(iids.length > 1 ? "items":"item")+" deleted.");
+
+        } else {
+         _requestError('Request Error.');
         }
       } else {
         _requestError('Request Error.');
@@ -93,7 +159,7 @@ class _LocationViewPageState extends State<LocationViewPage> {
     }
   }
 
-  _requestError(text) {
+  _requestError(String text) {
     final snackBar = SnackBar(
       content: Text(
         text,
@@ -102,8 +168,21 @@ class _LocationViewPageState extends State<LocationViewPage> {
       backgroundColor: Colors.red,
       duration: Duration(seconds: 2),
     );
-    Scaffold.of(context).hideCurrentSnackBar();
-    Scaffold.of(context).showSnackBar(snackBar);
+    _scaffoldKey.currentState.hideCurrentSnackBar();
+    _scaffoldKey.currentState.showSnackBar(snackBar);
+  }
+
+  _deletionSuccess(String text) {
+    final snackBar = SnackBar(
+      content: Text(
+        text,
+        style: TextStyle(color: Colors.white),
+      ),
+      backgroundColor: Colors.green,
+      duration: Duration(seconds: 2),
+    );
+    _scaffoldKey.currentState.hideCurrentSnackBar();
+    _scaffoldKey.currentState.showSnackBar(snackBar);
   }
 
   sortItems(int sort, int order) {
@@ -141,13 +220,74 @@ class _LocationViewPageState extends State<LocationViewPage> {
 
   }
 
+  _onTap(int iid) {
+    if(cardSelectionMode) {
+      _toggleCard(iid);
+      var selectCount = loadedItemBoxes.where((element) => element.isSelected == true).length;
+      if(selectCount == 0) {
+        setState(() {
+          cardSelectionMode = false;
+        });
+      }
+    }
+
+  }
+
+  _onLongPress(int iid) {
+    if(!cardSelectionMode) {
+      setState(() {
+        cardSelectionMode = true;
+      });
+      _toggleCard(iid);
+    }
+  }
+
+  _toggleCard(int iid) {
+    setState(() {
+      var box = loadedItemBoxes.where((element) => element.item.iid == iid).first;
+      box.isSelected = !box.isSelected;
+      box.refresh();
+    });
+  }
+
+  confirmDeletionDialog (BuildContext ctx) {
+    var c = loadedItemBoxes
+        .where((element) => element.isSelected == true)
+        .length;
+
+    return AlertDialog(
+      title: Text('Delete Items?'),
+      content: Text('You are about to delete '
+          + c.toString() +
+          (c > 1 ? ' items' : ' item') + '.'),
+      actions: [
+        FlatButton(
+          child: Text(
+            'Cancel', style: TextStyle(color: Colors.blue,),),
+          onPressed: () {
+            Navigator.of(ctx).pop();
+          },
+        ),
+        FlatButton(
+          child: Text('Delete', style: TextStyle(
+              color: Colors.red, fontWeight: FontWeight.bold),),
+          onPressed: () {
+            Navigator.of(ctx).pop();
+            _deleteItems();
+            _deletionSuccess("test deleted.");
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: _scaffoldKey,
         appBar: CustomAppBar(appBarText),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
-            // Add your onPressed code here!
             showDialog(
                 context: context,
                 barrierDismissible: false,
@@ -156,7 +296,6 @@ class _LocationViewPageState extends State<LocationViewPage> {
                     body: Builder(builder: (context) {
                       return AddItemDialog(widget.placeId, context);
                     })));
-            //_displayDialog(context);
           },
           label: Text('Item', style: TextStyle(color: Colors.black54)),
           splashColor: Colors.blue,
@@ -168,22 +307,52 @@ class _LocationViewPageState extends State<LocationViewPage> {
           child: Container(
             alignment: Alignment.topLeft,
             width: MediaQuery.of(context).size.width * 0.90,
+            margin: EdgeInsets.symmetric(vertical: 8),
             //margin: EdgeInsets.only(bottom: 80),
             child: Column(
               children: [
-                currentItemBoxes.length > 1 ? SortBox(
-                  onSortChange: (int sort, int order) {
-                    setState(() {
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      child: cardSelectionMode ? Row(
+                        children: [
+                          InkWell(
+                            splashColor: Colors.amber,
+                            highlightColor: Colors.blue,
+                            borderRadius: BorderRadius.all(Radius.circular(22)),
+                            onTap: () {
+                              showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) {
+                                    return confirmDeletionDialog(context);
+                                  });
+                            },
+                            child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                            child: Icon(Icons.delete, size: 20, color: Colors.red,),
+                          ))
+                        ],
+                      ):Container(),
+                    ),
+                    currentItemBoxes.length > 1 ? SortBox(
+                      onSortChange: (int sort, int order) {
+                      setState(() {
                       sortItems(sort, order);
-                    });
-                  },
-                  sortingOptions: ['Alphabetically','Date Modified','Date Created'],
-                  orderingOptions: [
-                    ["A to Z", "Z to A"],
-                    ["Oldest Items First", "Newest Items First"],
-                    ["Oldest Items First", "Newest Items First"]
-                  ]
-                ) : Container(),
+                      });
+                      },
+                      sortingOptions: ['Alphabetically','Date Modified','Date Created'],
+                      orderingOptions: [
+                        ["A to Z", "Z to A"],
+                        ["Oldest Items First", "Newest Items First"],
+                        ["Oldest Items First", "Newest Items First"]
+                      ],
+                      sortMethodSharedPref: "itemsSortBy",
+                      orderMethodSharedPref: "itemsOrderBy",
+                    ) : Container()
+                  ],
+                ),
                 currentItemBoxes.length > 0
                     ? Expanded(
                         child: RefreshIndicator(
@@ -191,7 +360,7 @@ class _LocationViewPageState extends State<LocationViewPage> {
                         child: SingleChildScrollView(
                           physics: currentItemBoxes.length > 1 ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
                           child: Container(
-                            margin: currentItemBoxes.length > 1 ? EdgeInsets.only(top: 12) : EdgeInsets.only(top: 48, right: 140),
+                            margin: currentItemBoxes.length > 1 ? EdgeInsets.only(top: 8) : EdgeInsets.only(top: 48, right: 140),
                               child: Wrap(
                             direction: Axis.horizontal,
                             children: currentItemBoxes,
@@ -220,245 +389,3 @@ class _LocationViewPageState extends State<LocationViewPage> {
   }
 }
 
-class AddItemDialog extends StatefulWidget {
-  final int itemLocation;
-  final BuildContext context;
-  AddItemDialog(this.itemLocation, this.context);
-
-  @override
-  _AddItemDialogState createState() => _AddItemDialogState();
-}
-
-class _AddItemDialogState extends State<AddItemDialog> {
-  bool isLoading = false;
-  _dialogTextFieldDecoration(int index) {
-    return InputDecoration(
-        enabled: true,
-        counter: SizedBox.shrink(),
-        //isDense: true,
-        contentPadding: EdgeInsets.all(10),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey, width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.amber, width: 2),
-        ),
-        border: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey, width: 1),
-        ),
-        hintText: "#" + index.toString() + " Item name",
-        hintStyle:
-            TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.2)));
-  }
-
-  // initialize controllers with only one item
-  List<TextEditingController> controllers = [new TextEditingController()];
-  List<Widget> _createChildren() {
-    // toggle autofocus for first element
-    bool autoFocus;
-    controllers.length > 1 ? autoFocus = false : autoFocus = true;
-    // create widgets
-    return new List<Widget>.generate(controllers.length, (int index) {
-      return TextField(
-        textCapitalization: TextCapitalization.words,
-        autofocus: autoFocus,
-        controller: controllers[index],
-        maxLines: 1,
-        maxLength: 30,
-        autocorrect: true,
-        textInputAction: TextInputAction.next,
-        style: TextStyle(fontSize: 14),
-        decoration: _dialogTextFieldDecoration(1 + index),
-      );
-    });
-  }
-
-  _submitForm() async {
-    // validate at least 1 field is not empty
-    bool isValid = false;
-
-    // read items from text field and add it to a list
-    List<String> itemNames = List<String>();
-    controllers.forEach((element) {
-      if (element.text.toString().length > 0) {
-        isValid = true;
-        itemNames.add(element.text.toString());
-      }
-    });
-
-    if (isValid) {
-      setState(() {
-        isLoading = true;
-      });
-
-      Map<String, dynamic> jsonRaw = {
-        "pid": widget.itemLocation,
-        "user_hash": sharedPrefs.getString("hash1"),
-        "items": itemNames
-      };
-      try {
-        http.Response response = await http
-            .post(
-              Constants.apiURL + '/api/items/new',
-              headers: <String, String>{
-                'Content-Type': 'application/json; charset=UTF-8',
-              },
-              body: jsonEncode(jsonRaw),
-            )
-            .timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
-        if (response != null && response.statusCode == 200) {
-          var jsonData = jsonDecode(response.body);
-          if (jsonData['result'] == true) {
-            setState(() {
-              isLoading = false;
-            });
-            // widget.refresh();
-            Navigator.pop(context);
-            Navigator.pushReplacementNamed(
-                context,
-                LocationViewPage.route +
-                    "/" +
-                    widget.itemLocation.toString()); //pop dialog
-
-          } else {
-            _requestError('Request Failed.');
-          }
-        } else {
-          _requestError('Request Failed.');
-        }
-      } on SocketException catch (e) {
-        _requestError('You are not connected to internet.');
-        log(e.toString());
-      } on TimeoutException catch (e) {
-        _requestError('Server time out.');
-        log(e.toString());
-      } catch (exception) {
-        _requestError('Network Error.');
-        log(exception.toString());
-      }
-    }
-  }
-
-  _requestError(text) {
-    final snackBar = SnackBar(
-      content: Text(
-        text,
-        style: TextStyle(color: Colors.white),
-      ),
-      backgroundColor: Colors.red,
-      duration: Duration(seconds: 2),
-    );
-    Scaffold.of(widget.context).hideCurrentSnackBar();
-    Scaffold.of(widget.context).showSnackBar(snackBar);
-    setState(() {
-      isLoading = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return isLoading
-        ? CustomLoadingDialog.widget
-        : AlertDialog(
-            elevation: 12,
-            scrollable: true,
-            //contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 100),
-            title: Text('Add Items',
-                style: TextStyle(
-                  fontSize: 16,
-                )),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(10.0))),
-            actionsPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-            contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 20),
-            content: Container(
-              width: MediaQuery.of(context).size.width * 0.90,
-              child: Column(
-                children: [
-                  Column(
-                    children: _createChildren(),
-                  ),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              Container(
-                width: MediaQuery.of(context).size.width * 0.90,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    InkWell(
-                      onTap: () => {
-                        if (controllers.length < Constants.MAX_ADD_ITEM_LIMIT)
-                          {
-                            setState(() {
-                              controllers.add(new TextEditingController());
-                            }),
-                            Future.delayed(const Duration(milliseconds: 50),
-                                () {
-                              setState(() {
-                                FocusScope.of(context).nextFocus();
-                              });
-                            })
-                          }
-                      },
-                      splashColor: Colors.amber,
-                      child: Container(
-                        height: 30,
-                        width: 56,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add, size: 14, color: Colors.amber),
-                            Text(
-                              'Add',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.amber,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.underline,
-                                  decorationThickness: 2),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 40,
-                    ),
-                    InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      splashColor: Colors.amber,
-                      child: Container(
-                        width: 56,
-                        height: 30,
-                        alignment: Alignment.center,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(
-                              color: Colors.blue, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    FlatButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        //side: BorderSide(color: Colors.red)
-                      ),
-                      child: new Text('Done'),
-                      color: Colors.blue,
-                      onPressed: () {
-                        _submitForm();
-                      },
-                    ),
-                  ],
-                ),
-              )
-            ],
-          );
-  }
-}

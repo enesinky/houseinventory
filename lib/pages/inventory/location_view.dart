@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
-import 'package:houseinventory/main.dart';
 import 'package:houseinventory/model/item.dart';
+import 'package:houseinventory/pages/inventory/inventory_view.dart';
 import 'package:houseinventory/widgets/dialog_add_item.dart';
+import 'package:houseinventory/widgets/loading_dialog.dart';
 import 'package:houseinventory/widgets/sort_box.dart';
 import '../../widgets/appbar.dart';
 import 'dart:convert';
@@ -28,6 +29,7 @@ class _LocationViewPageState extends State<LocationViewPage> {
   List<Widget> currentItemBoxes = List<Widget>();
   List<ItemBox> loadedItemBoxes = List<ItemBox>();
 
+  bool isLoading;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool cardSelectionMode = false;
   String locationName = "";
@@ -37,6 +39,7 @@ class _LocationViewPageState extends State<LocationViewPage> {
   @override
   void initState() {
     super.initState();
+    isLoading = true;
     _getItems();
   }
 
@@ -87,12 +90,14 @@ class _LocationViewPageState extends State<LocationViewPage> {
                   sortItems(sharedPrefs.getInt("itemsSortBy"), sharedPrefs.getInt("itemsOrderBy"));
                   locationName = item['placeName'];
                   appBarText = item['placeName'];
+                  isLoading = false;
                 });
               }
             }
           } else {
             setState(() {
               currentItemBoxes.clear();
+              isLoading = false;
             });
           }
 
@@ -116,6 +121,9 @@ class _LocationViewPageState extends State<LocationViewPage> {
 
   Future<void> _deleteItems() async {
     try {
+      setState(() {
+        isLoading = true;
+      });
       List<int> iids = List<int>();
       loadedItemBoxes.where((element) => element.isSelected).forEach((el) {
         iids.add(el.item.iid);
@@ -137,6 +145,7 @@ class _LocationViewPageState extends State<LocationViewPage> {
         if (jsonData['result'] == true) {
           setState(() {
             cardSelectionMode = false;
+            InventoryViewPage.refreshWidget();
             _getItems();
           });
           _deletionSuccess("("+iids.length.toString()+") "+(iids.length > 1 ? "items":"item")+" deleted.");
@@ -170,6 +179,9 @@ class _LocationViewPageState extends State<LocationViewPage> {
     );
     _scaffoldKey.currentState.hideCurrentSnackBar();
     _scaffoldKey.currentState.showSnackBar(snackBar);
+    setState(() {
+      isLoading = false;
+    });
   }
 
   _deletionSuccess(String text) {
@@ -274,7 +286,6 @@ class _LocationViewPageState extends State<LocationViewPage> {
           onPressed: () {
             Navigator.of(ctx).pop();
             _deleteItems();
-            _deletionSuccess("test deleted.");
           },
         ),
       ],
@@ -303,7 +314,15 @@ class _LocationViewPageState extends State<LocationViewPage> {
           icon: Icon(Icons.add_circle, color: Colors.black),
           backgroundColor: Colors.amber,
         ),
-        body: Center(
+        body: isLoading ?
+        Center(
+          child: Container(
+              width: 48,
+              height: 48,
+              child: CircularProgressIndicator(strokeWidth: 7, backgroundColor: Colors.black12)
+          ),
+        )
+            : Center(
           child: Container(
             alignment: Alignment.topLeft,
             width: MediaQuery.of(context).size.width * 0.90,
@@ -336,20 +355,21 @@ class _LocationViewPageState extends State<LocationViewPage> {
                         ],
                       ):Container(),
                     ),
-                    currentItemBoxes.length > 1 ? SortBox(
-                      onSortChange: (int sort, int order) {
-                      setState(() {
-                      sortItems(sort, order);
-                      });
-                      },
-                      sortingOptions: ['Alphabetically','Date Modified','Date Created'],
-                      orderingOptions: [
-                        ["A to Z", "Z to A"],
-                        ["Oldest Items First", "Newest Items First"],
-                        ["Oldest Items First", "Newest Items First"]
-                      ],
-                      sortMethodSharedPref: "itemsSortBy",
-                      orderMethodSharedPref: "itemsOrderBy",
+                    currentItemBoxes.length > 0 ? AbsorbPointer(
+                      absorbing: (currentItemBoxes.length <= 1),
+                      child: SortBox(
+                        onSortChange: (int sort, int order) {
+                          sortItems(sort, order);
+                        },
+                        sortingOptions: ['Alphabetically','Date Modified','Date Created'],
+                        orderingOptions: [
+                          ["A to Z", "Z to A"],
+                          ["Oldest Items First", "Newest Items First"],
+                          ["Oldest Items First", "Newest Items First"]
+                        ],
+                        sortMethodSharedPref: "itemsSortBy",
+                        orderMethodSharedPref: "itemsOrderBy",
+                      ),
                     ) : Container()
                   ],
                 ),
@@ -360,7 +380,7 @@ class _LocationViewPageState extends State<LocationViewPage> {
                         child: SingleChildScrollView(
                           physics: currentItemBoxes.length > 1 ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
                           child: Container(
-                            margin: currentItemBoxes.length > 1 ? EdgeInsets.only(top: 8) : EdgeInsets.only(top: 48, right: 140),
+                            margin: EdgeInsets.only(top: 8),
                               child: Wrap(
                             direction: Axis.horizontal,
                             children: currentItemBoxes,

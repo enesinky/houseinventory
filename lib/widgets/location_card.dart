@@ -3,13 +3,33 @@ import 'package:houseinventory/pages/inventory/location_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
+class LocationCard extends StatefulWidget {
 
-class LocationCard extends StatelessWidget {
-   Location location;
-  LocationCard(this.location);
+  final Location location;
+  final Function(int) onLongPress;
+  Function refresh;
+
+  LocationCard({
+    @required this.location,
+    @required this.onLongPress,
+  });
+
+  @override
+  _LocationCardState createState() => _LocationCardState();
+}
+
+class _LocationCardState extends State<LocationCard> {
+
+  refreshWidget() {
+    setState(() {
+
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    widget.refresh = refreshWidget;
     var boxSize = (MediaQuery.of(context).size.width * 0.9 - 32) / 2;
     return Container(
       width: boxSize,
@@ -19,9 +39,11 @@ class LocationCard extends StatelessWidget {
         borderRadius: BorderRadius.all(Radius.circular(boxSize)),
         splashColor: Colors.amber,
         hoverColor: Colors.yellow,
-
+        onLongPress: () {
+          widget.onLongPress(widget.location.pid);
+        },
         onTap: () {
-          var navigateUrl = LocationViewPage.route + '/' + this.location.pid.toString();
+          var navigateUrl = LocationViewPage.route + '/' + widget.location.pid.toString();
           Navigator.pushNamed(context, navigateUrl);
         },
         child: Container(
@@ -40,7 +62,7 @@ class LocationCard extends StatelessWidget {
                     Container(
                       child: Flexible(
                           child: Text(
-                            this.location.name,
+                            widget.location.name,
                             overflow: TextOverflow.fade,
                             maxLines: 3,
                             style: TextStyle(
@@ -59,7 +81,7 @@ class LocationCard extends StatelessWidget {
                     Container(
                       child: Flexible(
                           child: Text(
-                            this.location.itemCount.toString() + (this.location.itemCount < 2 ? ' item' : ' items.'),
+                            widget.location.itemCount.toString() + (widget.location.itemCount < 2 ? ' item' : ' items.'),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: TextStyle(color: Colors.black38, fontSize: 14),
@@ -74,4 +96,8 @@ class LocationCard extends StatelessWidget {
       ),
     );
   }
+
 }
+
+
+

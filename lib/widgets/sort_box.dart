@@ -38,8 +38,8 @@ class _SortBoxState extends State<SortBox> {
                 },
                 sortByOptions: widget.sortingOptions,
                 orderByOptions: widget.orderingOptions,
-                orderMethodSharedPref: widget.sortMethodSharedPref,
-                sortMethodSharedPref: widget.orderMethodSharedPref,
+                sortMethodSharedPref: widget.sortMethodSharedPref,
+                orderMethodSharedPref: widget.orderMethodSharedPref,
               );
             });
       },

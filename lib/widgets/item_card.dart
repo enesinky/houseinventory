@@ -6,6 +6,7 @@ import 'package:houseinventory/model/item.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 
 
+// ignore: must_be_immutable
 class ItemBox extends StatefulWidget {
 
   final Item item;

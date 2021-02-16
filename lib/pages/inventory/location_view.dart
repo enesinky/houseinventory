@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:houseinventory/model/item.dart';
 import 'package:houseinventory/pages/inventory/inventory_view.dart';
 import 'package:houseinventory/widgets/dialog_add_item.dart';
-import 'package:houseinventory/widgets/loading_dialog.dart';
 import 'package:houseinventory/widgets/sort_box.dart';
 import '../../widgets/appbar.dart';
 import 'dart:convert';

@@ -1,9 +1,9 @@
 import 'package:houseinventory/pages/account/account_view.dart';
-import 'package:houseinventory/pages/camera/image_classification.dart';
 import 'package:houseinventory/pages/dashboard/dashboard.dart';
 import 'package:houseinventory/pages/inventory/inventory_view.dart';
 import 'package:houseinventory/pages/inventory/item_view.dart';
 import 'package:houseinventory/pages/inventory/location_view.dart';
+import 'package:houseinventory/pages/scan/image_classification.dart';
 import 'package:houseinventory/pages/search/search.dart';
 import 'package:houseinventory/pages/settings/settings.dart';
 import 'package:houseinventory/pages/home/tabs.dart';
@@ -38,8 +38,8 @@ class RouteConfiguration {
           (context, match) => TabsPage(),
     ),
     Path(
-      r'^' + Dashboard.route,
-          (context, match) => Dashboard(),
+      r'^' + DashBoard.route,
+          (context, match) => DashBoard(),
     ),
     Path(
       r'^' + InventoryViewPage.route,
@@ -58,8 +58,8 @@ class RouteConfiguration {
           (context, match) => AccountViewPage(),
     ),
     Path(
-      r'^' + CameraPage.route,
-          (context, match) => CameraPage(),
+      r'^' + ScanPage.route,
+          (context, match) => ScanPage(),
     ),
   ];
 

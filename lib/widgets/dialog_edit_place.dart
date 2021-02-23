@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:houseinventory/pages/inventory/inventory_view.dart';
+import 'package:houseinventory/util/Translations.dart';
 import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:houseinventory/model/location.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../application.dart';
 import 'loading_dialog.dart';
 import 'package:http/http.dart' as http;
 
@@ -44,7 +46,7 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
     super.dispose();
   }
 
-  _snackBar({Color color, String text}) {
+  _popAndSnackBar({Color color, String text}) {
     final snackBar = SnackBar(
       content: Text(
         text,
@@ -55,9 +57,57 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
     );
     widget.scaffoldKey.currentState.hideCurrentSnackBar();
     widget.scaffoldKey.currentState.showSnackBar(snackBar);
+
+    Navigator.pop(context);
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  _modifyRequest() async {
+    var t = Translations.of(context);
+    try {
+      http.Response response = await http.post(
+        Constants.apiURL + '/api/places/update',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          "pid": widget.location.pid,
+          "name": textEditingController.text,
+          "user_hash": sharedPrefs.getString("hash1")
+        }),
+      ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
+      if (response != null && response.statusCode == 200) {
+        var jsonData = jsonDecode(response.body);
+        if(jsonData['result'] == true) {
+          await InventoryViewPage.refreshWidget();
+          setState(() {
+            isLoading = false;
+          });
+          _popAndSnackBar(color: Colors.green, text: t.text("inventory_modify_updated"));
+        }
+        else {
+          _popAndSnackBar(color: Colors.red, text: t.text("snack_msg_req_failed"));
+        }
+      }
+      else {
+        _popAndSnackBar(color: Colors.red, text: t.text("snack_msg_req_failed"));
+      }
+    } on SocketException catch(e) {
+      _popAndSnackBar(color: Colors.red, text: t.text("snack_msg_no_connection"));
+    }
+    on TimeoutException catch(e) {
+      _popAndSnackBar(color: Colors.red, text: t.text("snack_msg_timeout"));
+    }
+    catch (exception) {
+      _popAndSnackBar(color: Colors.red, text: t.text("snack_msg_network_err"));
+    }
+
   }
 
   _deleteRequest() async {
+    var t = Translations.of(context);
       try {
         http.Response response = await http.post(
           Constants.apiURL + '/api/places/delete',
@@ -72,33 +122,33 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
         if (response != null && response.statusCode == 200) {
           var jsonData = jsonDecode(response.body);
           if(jsonData['result'] == true) {
+            await InventoryViewPage.refreshWidget();
             setState(() {
               isLoading = false;
             });
-            Navigator.pop(context);
-            InventoryViewPage.refreshWidget();
-            _snackBar(color: Colors.green, text: widget.location.name + " deleted from inventory.");
+            _popAndSnackBar(color: Colors.green, text: t.text("inventory_deleted_suc_msg", {"name": widget.location.name}));
           }
           else {
-            _snackBar(color: Colors.red, text: "Request Failed.");
+            _popAndSnackBar(color: Colors.red, text: t.text("snack_msg_req_failed"));
           }
         }
         else {
-          _snackBar(color: Colors.red, text: "Request Failed.");
+          _popAndSnackBar(color: Colors.red, text: t.text("snack_msg_req_failed"));
         }
       } on SocketException catch(e) {
-        _snackBar(color: Colors.red, text: "You are not connected to internet.");
+        _popAndSnackBar(color: Colors.red, text: t.text("snack_msg_no_connection"));
       }
       on TimeoutException catch(e) {
-        _snackBar(color: Colors.red, text: "Server timed out.");
+        _popAndSnackBar(color: Colors.red, text: t.text("snack_msg_timeout"));
       }
       catch (exception) {
-        _snackBar(color: Colors.red, text: "Network Error.");
+        _popAndSnackBar(color: Colors.red, text: t.text("snack_msg_network_err"));
       }
 
   }
 
   _dialogTextFieldDecoration() {
+    var t = Translations.of(context);
     return InputDecoration(
       enabled: true,
       //isDense: true,
@@ -112,7 +162,7 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
       border: OutlineInputBorder(
         borderSide: BorderSide(color: Colors.grey, width: 1),
       ),
-      hintText: !toggleDeletePage ? "Place name" : "",
+      hintText: !toggleDeletePage ? t.text("inventory_add_place_hint") : "",
 
     );
   }
@@ -120,22 +170,24 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
   @override
   Widget build(BuildContext context) {
 
+    var t = Translations.of(context);
     textEditingController.text = widget.location.name;
-    DateTime dateCreated = DateTime.parse(widget.location.created);
+    //DateTime dateCreated = DateTime.parse(widget.location.created);
     DateTime dateModified = DateTime.parse(widget.location.modified);
     final currentTime = new DateTime.now();
-    var createdTa = timeago.format(
-        currentTime.subtract(Duration(milliseconds: currentTime.millisecondsSinceEpoch - dateCreated.millisecondsSinceEpoch)),
-        locale: 'en');
+    // var createdTa = timeago.format(
+    //     currentTime.subtract(Duration(milliseconds: currentTime.millisecondsSinceEpoch - dateCreated.millisecondsSinceEpoch)),
+    //     locale: 'en');
     var modifiedTa = timeago.format(
         currentTime.subtract(Duration(milliseconds: currentTime.millisecondsSinceEpoch - dateModified.millisecondsSinceEpoch)),
-        locale: 'en');
+        locale: sharedPrefs.getString(applic.languageSharedPref));
+
 
     return isLoading ? CustomLoadingDialog.widget : AlertDialog(
       elevation: 12,
       scrollable: true,
       //contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 100),
-      title: Text(toggleDeletePage ? 'Delete Place' : 'Modify Place', style: TextStyle(
+      title: Text(toggleDeletePage ? t.text("inventory_delete_place") : t.text("inventory_modify_place"), style: TextStyle(
         fontSize: 16,
       )),
       shape: RoundedRectangleBorder(
@@ -147,7 +199,7 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Type "yes" in order to proceed.', style: TextStyle(fontSize: 14, color: Colors.black54),),
+            Text(t.text("inventory_delete_msg", {"yes": t.text("yes")}), style: TextStyle(fontSize: 14, color: Colors.black54),),
             SizedBox(height: 12,),
             TextField(
               maxLines: 1,
@@ -161,7 +213,7 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
             ),
             SizedBox(height: 12,),
             widget.location.itemCount > 0 ?
-            Text('Deleting '+widget.location.name+' will also delete all items (' + widget.location.itemCount.toString() + ') belong to it.',
+            Text(t.text("inventory_delete_warning", {"name": widget.location.name, "count": widget.location.itemCount}),
               style: TextStyle(fontSize: 13, color: Colors.red, fontWeight: FontWeight.bold),) :
             Container(),
           ],
@@ -182,7 +234,7 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
               decoration: _dialogTextFieldDecoration(),
             ),
             SizedBox(height: 12,),
-            Text('You modified this place ' + createdTa + ".", style: TextStyle(fontSize: 11, color: Colors.black54),)
+            Text(t.text("inventory_modify_msg", {"timeago": modifiedTa}), style: TextStyle(fontSize: 11, color: Colors.black54),)
           ],
         ),
       ),
@@ -199,7 +251,7 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
             height: 30,
             alignment: Alignment.center,
             padding: EdgeInsets.symmetric(horizontal: 14, vertical: 0),
-            child: Text('Cancel', style: TextStyle(
+            child: Text(t.text("cancel"), style: TextStyle(
                 color: Colors.blue,
                 fontWeight: FontWeight.bold
             ),),
@@ -210,10 +262,10 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
             borderRadius: BorderRadius.circular(10.0),
             //side: BorderSide(color: Colors.red)
           ),
-          child: new Text('DELETE'),
+          child: new Text(t.text("delete").toUpperCase()),
           color: Colors.red,
           onPressed: () {
-            if(textEditingControllerDelete.text == "yes") {
+            if(textEditingControllerDelete.text == t.text("yes")) {
               setState(() {
                 toggleDeletePage = false;
                 isLoading = true;
@@ -242,7 +294,6 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
                   height: 32,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(16)),
-
                   ),
                   padding:
                   EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -267,7 +318,7 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
                   padding:
                   EdgeInsets.symmetric(horizontal: 6, vertical: 0),
                   child: Text(
-                    'Cancel',
+                    t.text("cancel"),
                     style: TextStyle(
                         color: Colors.blue, fontWeight: FontWeight.bold),
                   ),
@@ -278,10 +329,15 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
                   borderRadius: BorderRadius.circular(10.0),
                   //side: BorderSide(color: Colors.red)
                 ),
-                child: new Text('Done'),
+                child: new Text(t.text("done")),
                 color: Colors.blue,
                 onPressed: () {
-
+                  if(textEditingController.text.length >= 3) {
+                    setState(() {
+                      isLoading = true;
+                    });
+                    _modifyRequest();
+                  }
                 },
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:houseinventory/util/Translations.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 
 class SortBox extends StatefulWidget {
@@ -23,6 +24,7 @@ class SortBox extends StatefulWidget {
 class _SortBoxState extends State<SortBox> {
   @override
   Widget build(BuildContext context) {
+    var t = Translations.of(context);
     return InkWell(
       borderRadius: BorderRadius.all(Radius.circular(8)),
       splashColor: Colors.blueAccent,
@@ -50,7 +52,7 @@ class _SortBoxState extends State<SortBox> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Sort'.toUpperCase(),
+              t.text("sort").toUpperCase(),
               style: TextStyle(
                   color: Colors.blueAccent,
                   fontSize: 12,
@@ -108,6 +110,7 @@ class _SortDialogState extends State<SortDialog> {
 
   @override
   Widget build(BuildContext context) {
+    var t = Translations.of(context);
     return AlertDialog(
       elevation: 30,
       scrollable: true,
@@ -124,7 +127,7 @@ class _SortDialogState extends State<SortDialog> {
                   Container(
                       width: 70,
                       child: Text(
-                        'Sort By:',
+                        t.text("sort_by"),
                         style: TextStyle(
                             color: Colors.blueAccent,
                             fontWeight: FontWeight.bold,
@@ -138,7 +141,6 @@ class _SortDialogState extends State<SortDialog> {
                       isExpanded: true,
                       iconEnabledColor: Colors.amber,
                       dropdownColor: Colors.amberAccent,
-                      hint: Text('Select Place'),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.black,
@@ -182,7 +184,7 @@ class _SortDialogState extends State<SortDialog> {
                   Container(
                       width: 70,
                       child: Text(
-                        'Order:',
+                        t.text("order_by"),
                         style: TextStyle(
                             color: Colors.blueAccent,
                             fontWeight: FontWeight.bold,

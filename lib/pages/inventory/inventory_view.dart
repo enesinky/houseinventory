@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:houseinventory/model/location.dart';
+import 'package:houseinventory/pages/dashboard/dashboard.dart';
+import 'package:houseinventory/pages/scan/image_classification.dart';
+import 'package:houseinventory/util/Translations.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:houseinventory/widgets/dialog_add_place.dart';
 import 'package:houseinventory/widgets/dialog_edit_place.dart';
@@ -17,6 +20,7 @@ import 'package:flutter/material.dart';
   class InventoryViewPage extends StatefulWidget {
     static const String route = '/Inventory';
     static Function refreshWidget;
+    static List<Location> locations = List<Location>();
 
     @override
     _InventoryViewPageState createState() => _InventoryViewPageState();
@@ -40,7 +44,7 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
     super.initState();
     isLoading = true;
     _getPlaces();
-    InventoryViewPage.refreshWidget = _refreshPlaces;
+    InventoryViewPage.refreshWidget = _getPlaces;
   }
 
   @override
@@ -49,7 +53,7 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
   }
 
   Future<void> _getPlaces() async {
-    print("getting places");
+
     try {
       http.Response response = await http.post(
         Constants.apiURL + '/api/places/list',
@@ -81,62 +85,49 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
             loadedLocationCards.add(card);
             if(i == places.length-1) {
               sortLocations(sharedPrefs.getInt("placesSortBy"), sharedPrefs.getInt("placesOrderBy"));
+              DashBoard.reload();
+              ScanPage.refreshLocationList();
             }
           }
           if(places.length == 0) {
             setState(() {
+              isLoading = false;
+              loadedLocationsObjects.clear();
+              InventoryViewPage.locations.clear();
               currentLocationCards.clear();
             });
+            DashBoard.reload();
+            ScanPage.refreshLocationList();
           }
       }
         else {
-          _requestError('Request Failed.');
+          _showSnackBar('Request Failed.');
         }
       }
       else {
-        _requestError('Request Failed.');
+        _showSnackBar('Request Failed.');
       }
     } on SocketException catch(e) {
-      _requestError('You are not connected to internet.');
+      _showSnackBar('You are not connected to internet.');
       log(e.toString());
     }
     on TimeoutException catch(e) {
-      _requestError('Server time out.');
+      _showSnackBar('Server time out.');
       log(e.toString());
     }
     catch (exception) {
-      _requestError('Network Error.');
+      _showSnackBar('Network Error.');
       log(exception.toString());
     }
   }
 
-  bool hasLocationUpdated(List<Location> var1, List<Location> var2) {
-    bool result = false;
-    if(var1.isNotEmpty) {
-      var2.forEach((loc2) {
-        bool isUpdated = var1.where((loc1) => loc2.pid == loc1.pid && loc2.name == loc1.name && loc2.itemCount == loc1.itemCount).isEmpty;
-        print(isUpdated.toString());
-        if(isUpdated) result = true;
-      });
-    }
-    else {
-      result = true;
-    }
-
-    return result;
-  }
-
-  _requestError(text) {
+  _showSnackBar(text) {
     final snackBar = SnackBar(content: Text(text, style: TextStyle(color: Colors.white),), backgroundColor: Colors.red, duration: Duration(seconds: 2),);
     Scaffold.of(context).hideCurrentSnackBar();
     Scaffold.of(context).showSnackBar(snackBar);
     setState(() {
       isLoading = false;
     });
-  }
-
-  Future<void> _refreshPlaces() async {
-      _getPlaces();
   }
 
   sortLocations(int sort, int order) {
@@ -174,11 +165,13 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
 
     setState(() {
       isLoading = false;
+      InventoryViewPage.locations = loadedLocationsObjects;
       currentLocationCards.clear();
       loadedLocationCards.forEach((element) {
         currentLocationCards.add(element);
       });
     });
+
 
   }
 
@@ -202,9 +195,10 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
 
   @override
     Widget build(BuildContext context) {
+    var t = Translations.of(context);
       return Scaffold(
           key: _scaffoldKey,
-          appBar: CustomAppBar('Inventory List'),
+          appBar: CustomAppBar(t.text("appbar_inventory")),
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               showDialog(
@@ -248,12 +242,12 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
                         onSortChange: (int sort, int order) {
                           sortLocations(sort, order);
                         },
-                        sortingOptions: ['Alphabetically', 'Item Count', 'Date Modified','Date Created'],
+                        sortingOptions: [t.text("sort_alpha"), t.text("sort_item_count"), t.text("sort_date_modified"), t.text("sort_date_created")],
                         orderingOptions: [
-                          ["A to Z", "Z to A"],
-                          ["Most to Least", "Least to Most"],
-                          ["Oldest Items First", "Newest Items First"],
-                          ["Oldest Items First", "Newest Items First"]
+                          [t.text("order_a_to_z"), t.text("order_z_to_a")],
+                          [t.text("order_most"), t.text("order_least")],
+                          [t.text("order_oldest"), t.text("order_newest")],
+                          [t.text("order_oldest"), t.text("order_newest")]
                         ],
                         sortMethodSharedPref: "placesSortBy",
                         orderMethodSharedPref: "placesOrderBy",
@@ -282,7 +276,7 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
                         children: [
                           Icon(Icons.view_list, size: 28, color: Colors.amber),
                           Text(
-                            'Add a location your inventory.',
+                            t.text("inventory_empty_msg"),
                             style: TextStyle(fontSize: 16),
                           ),
                         ],

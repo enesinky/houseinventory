@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:houseinventory/pages/inventory/inventory_view.dart';
+import 'package:houseinventory/util/Translations.dart';
 import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:http/http.dart' as http;
@@ -21,11 +22,11 @@ class AddPlaceDialog extends StatefulWidget {
 class _AddPlaceDialogState extends State<AddPlaceDialog> {
 
   bool isLoading = false;
-
   TextEditingController textEditingController = new TextEditingController();
 
   _submitForm() async {
 
+    var t = Translations.of(context);
     if (textEditingController.text.toString().length >= 3) {
       setState(() {
         isLoading = true;
@@ -45,36 +46,36 @@ class _AddPlaceDialogState extends State<AddPlaceDialog> {
         if (response != null && response.statusCode == 200) {
           var jsonData = jsonDecode(response.body);
           if(jsonData['result'] == true) {
+            await InventoryViewPage.refreshWidget();
             setState(() {
               isLoading = false;
             });
             Navigator.pop(context);
-            InventoryViewPage.refreshWidget();
           }
           else {
-            _requestError('Request Failed.');
+            _snackBar(t.text("snack_msg_req_failed"));
           }
         }
         else {
-          _requestError('Request Failed.');
+          _snackBar(t.text("snack_msg_req_failed"));
         }
       } on SocketException catch(e) {
-        _requestError('You are not connected to internet.');
+        _snackBar(t.text("snack_msg_no_connection"));
         log(e.toString());
       }
       on TimeoutException catch(e) {
-        _requestError('Server time out.');
+        _snackBar(t.text("snack_msg_timeout"));
         log(e.toString());
       }
       catch (exception) {
-        _requestError('Network Error.');
+        _snackBar(t.text("snack_msg_network_err"));
         log(exception.toString());
       }
 
     }
   }
 
-  _requestError(text) {
+  _snackBar(text) {
     final snackBar = SnackBar(content: Text(text, style: TextStyle(color: Colors.white),), backgroundColor: Colors.red, duration: Duration(seconds: 2),);
     Scaffold.of(widget.context).hideCurrentSnackBar();
     Scaffold.of(widget.context).showSnackBar(snackBar);
@@ -84,6 +85,7 @@ class _AddPlaceDialogState extends State<AddPlaceDialog> {
   }
 
   _dialogTextFieldDecoration() {
+    var t = Translations.of(context);
     return InputDecoration(
       enabled: true,
       //isDense: true,
@@ -97,19 +99,19 @@ class _AddPlaceDialogState extends State<AddPlaceDialog> {
       border: OutlineInputBorder(
         borderSide: BorderSide(color: Colors.grey, width: 1),
       ),
-      hintText: "Place name",
+      hintText: t.text("inventory_add_place_hint"),
 
     );
   }
 
   @override
   Widget build(BuildContext context) {
-
+    var t = Translations.of(context);
     return isLoading ? CustomLoadingDialog.widget : AlertDialog(
       elevation: 12,
       scrollable: true,
       //contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 100),
-      title: Text('Add New Place to Inventory ', style: TextStyle(
+      title: Text(t.text("inventory_add_place_msg"), style: TextStyle(
         fontSize: 16,
       )),
       shape: RoundedRectangleBorder(
@@ -141,7 +143,7 @@ class _AddPlaceDialogState extends State<AddPlaceDialog> {
             height: 30,
             alignment: Alignment.center,
             padding: EdgeInsets.symmetric(horizontal: 14, vertical: 0),
-            child: Text('Cancel', style: TextStyle(
+            child: Text(t.text("cancel"), style: TextStyle(
                 color: Colors.blue,
                 fontWeight: FontWeight.bold
             ),),
@@ -152,7 +154,7 @@ class _AddPlaceDialogState extends State<AddPlaceDialog> {
             borderRadius: BorderRadius.circular(10.0),
             //side: BorderSide(color: Colors.red)
           ),
-          child: new Text('Done'),
+          child: new Text(t.text("done")),
           color: Colors.blue,
           onPressed: () {
             _submitForm();

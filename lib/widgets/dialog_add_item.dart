@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:houseinventory/pages/inventory/inventory_view.dart';
 import 'package:houseinventory/pages/inventory/location_view.dart';
 import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
@@ -104,7 +105,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
             setState(() {
               isLoading = false;
             });
-            // widget.refresh();
+            InventoryViewPage.refreshWidget();
             Navigator.pop(context);
             Navigator.pushReplacementNamed(
                 context,

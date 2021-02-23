@@ -1,6 +1,8 @@
 
-import 'package:houseinventory/widgets/setting_list_item.dart';
-
+import 'package:houseinventory/widgets/setting_group_label.dart';
+import 'package:houseinventory/widgets/setting_list_item_bool.dart';
+import 'package:houseinventory/widgets/setting_list_item_dropdown.dart';
+import 'package:houseinventory/widgets/setting_list_item_language.dart';
 import '../../widgets/appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -50,28 +54,18 @@ class _SettingsPageState extends State<SettingsPage> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       SettingGroupLabel('General Settings'),
-                      SettingListItemBool('List Newer Items First',
-                          'Order items from newest to oldest.', 'test_1', true),
                       SettingListItemBool('Colorize Items Randomly',
-                          'Item colors will change each time.', 'randomItemColor', true),
-                      SettingGroupLabel('Language Settings'),
-                      SettingListItemSelect(
-                          'System Language',
-                          'Select the language of application',
-                          'test_select',
-                          ['English', 'Turkish', 'German'],
-                          2),
+                          'Item colors will be set randomly.', 'randomItemColor', true),
+                      SettingListItemLanguage(),
                       SettingGroupLabel('Machine Learning Settings'),
-                      SettingListItemSelect(
+                      SettingListItemDropdown(
                           'Recognition Precision',
                           'Object recognition sensitivity.',
-                          'test_select',
+                          'recognitionPrecision',
                           ['High', 'Medium', 'Low'],
                           1),
                       SettingListItemBool(
                           'Translate Object Names', 'Default language is English.', 'test_4', true),
-                      SettingListItemBool(
-                          'Test Setting #5', 'This is a test setting', 'test_3', true),
                       Container(
                         // margin: EdgeInsets.sypmmetric(horizontal: 20, vertical: 10),
                         child: Column(

@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:houseinventory/pages/inventory/inventory_view.dart';
 import 'package:houseinventory/pages/inventory/location_view.dart';
+import 'package:houseinventory/util/Translations.dart';
 import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:http/http.dart' as http;
@@ -24,7 +25,9 @@ class AddItemDialog extends StatefulWidget {
 
 class _AddItemDialogState extends State<AddItemDialog> {
   bool isLoading = false;
+
   _dialogTextFieldDecoration(int index) {
+    var t = Translations.of(context);
     return InputDecoration(
         enabled: true,
         counter: SizedBox.shrink(),
@@ -39,9 +42,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
         border: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey, width: 1),
         ),
-        hintText: "#" + index.toString() + " Item name",
+        hintText: "#" + index.toString() + " " + t.text("items_add_item_hint"),
         hintStyle:
-        TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.2)));
+            TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.2)));
   }
 
   // initialize controllers with only one item
@@ -67,6 +70,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
   }
 
   _submitForm() async {
+    var t = Translations.of(context);
     // validate at least 1 field is not empty
     bool isValid = false;
 
@@ -92,12 +96,12 @@ class _AddItemDialogState extends State<AddItemDialog> {
       try {
         http.Response response = await http
             .post(
-          Constants.apiURL + '/api/items/new',
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(jsonRaw),
-        )
+              Constants.apiURL + '/api/items/new',
+              headers: <String, String>{
+                'Content-Type': 'application/json; charset=UTF-8',
+              },
+              body: jsonEncode(jsonRaw),
+            )
             .timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
         if (response != null && response.statusCode == 200) {
           var jsonData = jsonDecode(response.body);
@@ -114,25 +118,25 @@ class _AddItemDialogState extends State<AddItemDialog> {
                     widget.itemLocation.toString()); //pop dialog
 
           } else {
-            _requestError('Request Failed.');
+            _showSnackBar(t.text("snack_msg_req_failed"));
           }
         } else {
-          _requestError('Request Failed.');
+          _showSnackBar(t.text("snack_msg_req_failed"));
         }
       } on SocketException catch (e) {
-        _requestError('You are not connected to internet.');
+        _showSnackBar(t.text("snack_msg_no_connection"));
         log(e.toString());
       } on TimeoutException catch (e) {
-        _requestError('Server time out.');
+        _showSnackBar(t.text("snack_msg_timeout"));
         log(e.toString());
       } catch (exception) {
-        _requestError('Network Error.');
+        _showSnackBar(t.text("snack_msg_network_err"));
         log(exception.toString());
       }
     }
   }
 
-  _requestError(text) {
+  _showSnackBar(text) {
     final snackBar = SnackBar(
       content: Text(
         text,
@@ -150,108 +154,109 @@ class _AddItemDialogState extends State<AddItemDialog> {
 
   @override
   Widget build(BuildContext context) {
+    var t = Translations.of(context);
     return isLoading
-        ? CustomLoadingDialog.widget
+        ? CustomLoadingDialog()
         : AlertDialog(
-      elevation: 12,
-      scrollable: true,
-      //contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 100),
-      title: Text('Add Items',
-          style: TextStyle(
-            fontSize: 16,
-          )),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10.0))),
-      actionsPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-      contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 20),
-      content: Container(
-        width: MediaQuery.of(context).size.width * 0.90,
-        child: Column(
-          children: [
-            Column(
-              children: _createChildren(),
+            elevation: 12,
+            scrollable: true,
+            //contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 100),
+            title: Text(t.text("items_add_label"),
+                style: TextStyle(
+                  fontSize: 16,
+                )),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10.0))),
+            actionsPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+            contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 20),
+            content: Container(
+              width: MediaQuery.of(context).size.width * 0.90,
+              child: Column(
+                children: [
+                  Column(
+                    children: _createChildren(),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-      actions: <Widget>[
-        Container(
-          width: MediaQuery.of(context).size.width * 0.90,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              InkWell(
-                onTap: () => {
-                  if (controllers.length < Constants.MAX_ADD_ITEM_LIMIT)
-                    {
-                      setState(() {
-                        controllers.add(new TextEditingController());
-                      }),
-                      Future.delayed(const Duration(milliseconds: 50),
-                              () {
+            actions: <Widget>[
+              Container(
+                width: MediaQuery.of(context).size.width * 0.90,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    InkWell(
+                      onTap: () => {
+                        if (controllers.length < Constants.MAX_ADD_ITEM_LIMIT)
+                          {
                             setState(() {
-                              FocusScope.of(context).nextFocus();
-                            });
-                          })
-                    }
-                },
-                splashColor: Colors.amber,
-                child: Container(
-                  height: 30,
-                  width: 56,
-                  padding:
-                  EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add, size: 14, color: Colors.amber),
-                      Text(
-                        'Add',
-                        style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.amber,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                            decorationThickness: 2),
+                              controllers.add(new TextEditingController());
+                            }),
+                            Future.delayed(const Duration(milliseconds: 50),
+                                () {
+                              setState(() {
+                                FocusScope.of(context).nextFocus();
+                              });
+                            })
+                          }
+                      },
+                      splashColor: Colors.amber,
+                      child: Container(
+                        height: 30,
+                        width: 56,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add, size: 14, color: Colors.amber),
+                            Text(
+                              t.text("add"),
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.amber,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                  decorationThickness: 2),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(
+                      width: 40,
+                    ),
+                    InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      splashColor: Colors.amber,
+                      child: Container(
+                        width: 56,
+                        height: 30,
+                        alignment: Alignment.center,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                        child: Text(
+                          t.text("cancel"),
+                          style: TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    FlatButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        //side: BorderSide(color: Colors.red)
+                      ),
+                      child: new Text(t.text("done")),
+                      color: Colors.blue,
+                      onPressed: () {
+                        _submitForm();
+                      },
+                    ),
+                  ],
                 ),
-              ),
-              SizedBox(
-                width: 40,
-              ),
-              InkWell(
-                onTap: () => Navigator.of(context).pop(),
-                splashColor: Colors.amber,
-                child: Container(
-                  width: 56,
-                  height: 30,
-                  alignment: Alignment.center,
-                  padding:
-                  EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                        color: Colors.blue, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              FlatButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  //side: BorderSide(color: Colors.red)
-                ),
-                child: new Text('Done'),
-                color: Colors.blue,
-                onPressed: () {
-                  _submitForm();
-                },
-              ),
+              )
             ],
-          ),
-        )
-      ],
-    );
+          );
   }
 }

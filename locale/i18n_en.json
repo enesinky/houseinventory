@@ -30,27 +30,31 @@
   "inventory_modify_msg": "You modified this place $timeago",
   "inventory_modify_updated": "Your inventory has been updated.",
   "inventory_delete_place": "Delete Place",
-  "inventory_delete_msg": "Type $yes in order to proceed.",
+  "inventory_delete_msg": "Type '$yes' in order to proceed.",
   "inventory_deleted_suc_msg": "$name deleted from inventory.",
-  "inventory_delete_warning": "Deleting $name will also delete all items ($count) belong to it.",
+  "inventory_delete_warning": "Deleting $name will also delete $count items belong to it.",
 
   "items_delete_label": "Delete Items?",
-  "items_delete_msg": "You are about to delete $count $item",
+  "items_delete_msg": "You are about to delete $count of items.",
   "items_add_label": "Add Items",
   "items_add_item_hint": "Item name",
+  "items_empty_msg": "No Item yet.",
+  "items_created_msg": "Created $timeago",
+  "items_modified_msg": "Modified $timeago",
 
   "scan_empty": "No objects recognized yet.",
   "scan_take_photo": "Take Photo",
   "scan_select_gallery": "Select From Gallery",
-  "scan_recognized_obj": "Recognized Objects",
+  "scan_recognized_obj": "Recognized Objects:",
   "scan_select_place": "Select Place",
   "scan_btn_create": "Create Inventory",
   "scan_btn_add": "Add to Inventory",
   "scan_add_warning": "Select objects $append to add.",
   "scan_add_warning_append": "and inventory place",
-  "scan_added": "Items added to $name",
+  "scan_added": "Items added to:",
+  "scan_recog_failed": "Recognition Failed.",
 
-  "settings_general": "General Settings",
+  "setting_general": "General Settings",
   "setting_color": "Colorize Items Randomly",
   "setting_color_sub": "Item colors will be set randomly.",
   "setting_language": "System Language",
@@ -101,10 +105,11 @@
   "languageName_tr": "Turkish",
 
   "snack_msg_req_failed": "Request Failed.",
-  "snack_msg_network_err": "Network Error.",
+  "snack_msg_network_err": "Network Error: Problem occured while communicating with server..",
   "snack_msg_no_connection": "You are not connected to internet.",
-  "snack_msg_timeout": "Request timed out.",
+  "snack_msg_timeout": "Server Error: Problem occured while communicating with server.",
   "snack_msg_inventory_updated": "Your inventory has been updated.",
   "snack_msg_place_delete": "$name deleted from inventory.",
-  "snack_msg_items_deleted": "$count items deleted."
+  "snack_msg_items_deleted": "$count $item deleted."
+
 }

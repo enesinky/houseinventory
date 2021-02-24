@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:houseinventory/model/location.dart';
 import 'package:houseinventory/model/recognized_object.dart';
 import 'package:houseinventory/pages/inventory/inventory_view.dart';
+import 'package:houseinventory/util/Translations.dart';
 import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:houseinventory/widgets/dialog_add_place.dart';
@@ -76,6 +77,9 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   _showSnackBar(message, color) {
+    setState(() {
+      isLoading = false;
+    });
     scaffoldKey.currentState.hideCurrentSnackBar();
     return scaffoldKey.currentState.showSnackBar(
         SnackBar(
@@ -88,6 +92,7 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   _requestAddItems() async {
+    var t = Translations.of(context);
     var selectedObjects = recognizedObjects.where((element) => element.isSelected == true);
     if (selectedObjects.length > 0 && inventoryDropDownValue != null) {
       setState(() {
@@ -117,7 +122,6 @@ class _ScanPageState extends State<ScanPage> {
         if (response != null && response.statusCode == 200) {
           var json = jsonDecode(response.body);
           setState(() {
-            isLoading = false;
             isFinished = true;
           });
           if(json['result'] == true) {
@@ -129,26 +133,24 @@ class _ScanPageState extends State<ScanPage> {
               strInventoryName = locationList.where((element) => element.pid==int.parse(inventoryDropDownValue)).first.name;
               recognizedObjects.clear();
             });
-            _showSnackBar("Items Added.", Colors.green);
+            _showSnackBar(t.text("scan_added", {"name": strInventoryName}), Colors.green);
             InventoryViewPage.refreshWidget();
             _showImagePickingOptions(toggle: true);
           } else {
-            _showSnackBar("Something went wrong!", Colors.red);
+            _showSnackBar(t.text("snack_msg_req_failed"), Colors.red);
           }
         }
         else {
-          _showSnackBar("Server Error: Problem occured while communicating with server.", Colors.red);
+          _showSnackBar(t.text("snack_msg_network_err"), Colors.red);
         }
       } catch (exception) {
-        setState(() {
-          isLoading = false;
-        });
-        _showSnackBar("Network Error: Problem occured while communicating with server.", Colors.red);
+        _showSnackBar(t.text("snack_msg_network_err"), Colors.red);
       }
     }
   }
 
   _startRecognition() async {
+    var t = Translations.of(context);
     settings.largestNumberOfReturns = 10;
     switch(sharedPrefs.getInt("recognitionPrecision")) {
       case 0:
@@ -190,7 +192,7 @@ class _ScanPageState extends State<ScanPage> {
         isProcessing = false;
       });
     } on Exception catch (e) {
-      print(e.toString());
+      _showSnackBar(t.text("scan_recog_failed") + " ${e.toString()}", Colors.red);
       setState(() {
         isProcessing = false;
       });
@@ -202,7 +204,6 @@ class _ScanPageState extends State<ScanPage> {
       showImagePickingOptions = !toggle ? true : !showImagePickingOptions;
     });
   }
-
 
   Widget addedObjectWidget(RecognizedObject object) {
     return Container(
@@ -226,34 +227,38 @@ class _ScanPageState extends State<ScanPage> {
     );
   }
 
-  var noObjectWidget = Center(
-      child: Text('No object recognized yet.', style: TextStyle(
-        fontSize: 13,
-        color: Colors.black54,
-        fontStyle: FontStyle.italic,
-      ),),
-  );
-
-  var processingWidget = Container(
-    margin: EdgeInsets.symmetric(vertical: 30),
-    child: Center(
-      child: Column(
-        children: [
-          CircularProgressIndicator(strokeWidth: 7, backgroundColor: Colors.black12,),
-          SizedBox(height: 10,),
-          Text("Processing", style: TextStyle(color: Colors.black12, fontSize:14))
-        ],
-      ),
-    ),
-  );
 
   @override
   Widget build(BuildContext context) {
 
+    var t = Translations.of(context);
+
+    var noObjectWidget = Center(
+      child: Text(t.text("scan_empty"), style: TextStyle(
+        fontSize: 13,
+        color: Colors.black54,
+        fontStyle: FontStyle.italic,
+      ),),
+    );
+
+
+    var processingWidget = Container(
+      margin: EdgeInsets.symmetric(vertical: 30),
+      child: Center(
+        child: Column(
+          children: [
+            CircularProgressIndicator(strokeWidth: 7, backgroundColor: Colors.black12,),
+            SizedBox(height: 10,),
+            Text(t.text("processing"), style: TextStyle(color: Colors.black12, fontSize:14))
+          ],
+        ),
+      ),
+    );
+
     return SafeArea(
       child: Scaffold(
           key: scaffoldKey,
-          appBar: CustomAppBar("Scan Objects"),
+          appBar: CustomAppBar(t.text("appbar_scan")),
           bottomSheet: showImagePickingOptions ? Container(
             height: 100,
             width: MediaQuery
@@ -276,7 +281,7 @@ class _ScanPageState extends State<ScanPage> {
                           child: Column(
                             children: [
                               Icon(Icons.add_a_photo),
-                              Text("Take Photo", style: TextStyle(fontSize: 13),),
+                              Text(t.text("scan_take_photo"), style: TextStyle(fontSize: 13),),
                             ],
                           ),
                           onPressed: () async {
@@ -294,7 +299,7 @@ class _ScanPageState extends State<ScanPage> {
                           child: Column(
                             children: [
                               Icon(Icons.photo_library),
-                              Text("Select From Gallery",
+                              Text(t.text("scan_select_gallery"),
                                 style: TextStyle(fontSize: 13),),
                             ],
                           ),
@@ -357,7 +362,7 @@ class _ScanPageState extends State<ScanPage> {
                         isFinished == true ? Container(
                             alignment: Alignment.topLeft,
                             child: Wrap(
-                              children: [Text('Items Added to ', style: TextStyle(
+                              children: [Text(t.text("scan_added"), style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black38
@@ -378,7 +383,7 @@ class _ScanPageState extends State<ScanPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Recognized Objects:", style: TextStyle(
+                              Text(t.text("scan_recognized_obj"), style: TextStyle(
                                 color: Colors.black38,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
@@ -414,7 +419,7 @@ class _ScanPageState extends State<ScanPage> {
                                 icon: Icon(Icons.view_list),
                                 isExpanded: true,
                                 dropdownColor: Colors.amberAccent,
-                                hint: Text('Select Place'),
+                                hint: Text(t.text("scan_select_place")),
                                 //value: inventoryDropDownValue,
                                 style: TextStyle(fontSize: 15, color: Colors.black,),
                                 elevation: 16,
@@ -447,7 +452,7 @@ class _ScanPageState extends State<ScanPage> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                                   children: [
-                                    Text((locationList == null || locationList.length == 0) ? 'Create an Inventory' : 'Add to Inventory', style: TextStyle(
+                                    Text((locationList == null || locationList.length == 0) ? t.text("scan_btn_create") : t.text("scan_btn_add"), style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
                                     ),),
@@ -456,11 +461,12 @@ class _ScanPageState extends State<ScanPage> {
                                 color: Colors.blueAccent,
                                 onPressed: () {
                                   int selectedCount = recognizedObjects == null ? 0 : recognizedObjects.where((element) => element.isSelected).length;
-                                  if (selectedCount == 0) {
-                                    String str = "Select objects ";
-                                    str += (locationList!=null && locationList.length>0 && inventoryDropDownValue==null) ? "and location ":"";
-                                    str += "to add.";
-                                    _showSnackBar(str, Colors.red);
+                                  if (selectedCount == 0 || inventoryDropDownValue==null) {
+                                    String warning = t.text("scan_add_warning", {
+                                      "append": (locationList!=null && locationList.length>0 && inventoryDropDownValue==null) ? t.text("scan_add_warning_append"):""
+                                    });
+                                    _showSnackBar(warning, Colors.red);
+
                                   }
                                   else if(locationList == null || locationList.length == 0) {
                                     showDialog(

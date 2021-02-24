@@ -58,6 +58,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
 
+    APPLIC.mainContext = context;
     //SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
 
     return MaterialApp(

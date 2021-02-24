@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
@@ -11,54 +13,43 @@ class SettingListItemDropdown extends StatefulWidget {
 
   SettingListItemDropdown(this.title, this.subtitle, this.sharedPrefParam, this.options, this.defaultValue);
   @override
-  _SettingListItemDropdownState createState() => _SettingListItemDropdownState(this.title, this.subtitle, this.sharedPrefParam, this.options, this.defaultValue);
+  _SettingListItemDropdownState createState() => _SettingListItemDropdownState();
 
 }
 
 class _SettingListItemDropdownState extends State<SettingListItemDropdown> {
 
-  final String title;
-  final String subtitle;
-  final String sharedPrefParam;
-  final List<String> options;
-  final int defaultValue;
-
-  _SettingListItemDropdownState(this.title, this.subtitle, this.sharedPrefParam, this.options, this.defaultValue);
-
   @override
   Widget build(BuildContext context) {
     // set sharedprefs default value initially
-    if(sharedPrefs.getInt(sharedPrefParam) == null) sharedPrefs.setInt(sharedPrefParam, defaultValue);
-    // set selectbox default value
-    String dropDownValue = options[sharedPrefs.getInt(sharedPrefParam)];
+    if(sharedPrefs.getInt(widget.sharedPrefParam) == null) sharedPrefs.setInt(widget.sharedPrefParam, widget.defaultValue);
+
     return ListTile(
       title: Text(
-        title,
+        widget.title,
         style: TextStyle(fontSize: 14),
       ),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: DropdownButton<String>(
-        hint: Text('Language'),
-        value: dropDownValue,
+      subtitle: widget.subtitle != null ? Text(widget.subtitle) : null,
+      trailing: widget.options.first != '' ? DropdownButton<String>(
+        value: sharedPrefs.getInt(widget.sharedPrefParam).toString(),
         style: TextStyle(fontSize: 14, color: Colors.black),
         elevation: 16,
         underline: Container(
           height: 2,
           color: Colors.amber,
         ),
-        items: options.map((String value) {
+        items: widget.options.map((String value) {
           return DropdownMenuItem<String>(
-            value: value,
+            value: widget.options.indexOf(value).toString(),
             child: Text(value),
           );
         }).toList(),
         onChanged: (String newValue) {
           setState(() {
-            dropDownValue = newValue;
-            sharedPrefs.setInt(sharedPrefParam, options.indexOf(newValue));
+            sharedPrefs.setInt(widget.sharedPrefParam, int.parse(newValue));
           });
         },
-      ),
+      ): SizedBox(width: 20,),
     );
   }
 }

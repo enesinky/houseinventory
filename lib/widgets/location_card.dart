@@ -2,6 +2,7 @@ import 'package:houseinventory/model/location.dart';
 import 'package:houseinventory/pages/inventory/location_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:houseinventory/util/Translations.dart';
 
 // ignore: must_be_immutable
 class LocationCard extends StatefulWidget {
@@ -29,6 +30,7 @@ class _LocationCardState extends State<LocationCard> {
 
   @override
   Widget build(BuildContext context) {
+    var t = Translations.of(context);
     widget.refresh = refreshWidget;
     var boxSize = (MediaQuery.of(context).size.width * 0.9 - 32) / 2;
     return Container(
@@ -81,7 +83,7 @@ class _LocationCardState extends State<LocationCard> {
                     Container(
                       child: Flexible(
                           child: Text(
-                            widget.location.itemCount.toString() + (widget.location.itemCount < 2 ? ' item' : ' items.'),
+                            widget.location.itemCount.toString() + " " + (widget.location.itemCount > 1 ? t.text("item_plural") : t.text("item_singular")),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: TextStyle(color: Colors.black38, fontSize: 14),

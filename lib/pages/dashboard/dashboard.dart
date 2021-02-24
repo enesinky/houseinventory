@@ -60,6 +60,9 @@ class _DashBoardState extends State<DashBoard> {
 
   Future<void> _getItemCountByCreatedDate() async {
     try {
+      setState(() {
+        newlyAddedGraphData.clear();
+      });
       http.Response response = await http
           .post(
         Constants.apiURL + '/api/items/dashboard-items',
@@ -76,9 +79,13 @@ class _DashBoardState extends State<DashBoard> {
         if (jsonData['result'] == true) {
           List<dynamic> objects = jsonData['objects'];
           setState(() {
-            newlyAddedGraphData.clear();
             objects.forEach((element) {
               String period = _convertDateString(element['month']) + " " + element['year'].toString().substring(2);
+              if(objects.length == 1) {
+                newlyAddedGraphData.add(
+                    ItemAddPerformanceData(period, 0)
+                );
+              }
               newlyAddedGraphData.add(
                 ItemAddPerformanceData(period, element['itemCount'].toDouble())
               );

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:houseinventory/application.dart';
 import 'package:houseinventory/model/location.dart';
 import 'package:houseinventory/pages/dashboard/dashboard.dart';
 import 'package:houseinventory/pages/scan/image_classification.dart';
@@ -53,7 +54,7 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
   }
 
   Future<void> _getPlaces() async {
-
+    var t = Translations.of(APPLIC.mainContext);
     try {
       http.Response response = await http.post(
         Constants.apiURL + '/api/places/list',
@@ -101,22 +102,22 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
           }
       }
         else {
-          _showSnackBar('Request Failed.');
+          _showSnackBar(t.text("snack_msg_req_failed"));
         }
       }
       else {
-        _showSnackBar('Request Failed.');
+        _showSnackBar(t.text("snack_msg_req_failed"));
       }
     } on SocketException catch(e) {
-      _showSnackBar('You are not connected to internet.');
+      _showSnackBar(t.text("snack_msg_no_connection"));
       log(e.toString());
     }
     on TimeoutException catch(e) {
-      _showSnackBar('Server time out.');
+      _showSnackBar(t.text("snack_msg_timeout"));
       log(e.toString());
     }
     catch (exception) {
-      _showSnackBar('Network Error.');
+      _showSnackBar(t.text("snack_msg_network_err"));
       log(exception.toString());
     }
   }
@@ -246,8 +247,8 @@ class _InventoryViewPageState extends State<InventoryViewPage> {
                         orderingOptions: [
                           [t.text("order_a_to_z"), t.text("order_z_to_a")],
                           [t.text("order_most"), t.text("order_least")],
-                          [t.text("order_oldest"), t.text("order_newest")],
-                          [t.text("order_oldest"), t.text("order_newest")]
+                          [t.text("order_oldest_first"), t.text("order_newest_first")],
+                          [t.text("order_oldest_first"), t.text("order_newest_first")]
                         ],
                         sortMethodSharedPref: "placesSortBy",
                         orderMethodSharedPref: "placesOrderBy",

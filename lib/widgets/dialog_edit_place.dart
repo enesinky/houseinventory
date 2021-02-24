@@ -183,7 +183,7 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
         locale: sharedPrefs.getString(applic.languageSharedPref));
 
 
-    return isLoading ? CustomLoadingDialog.widget : AlertDialog(
+    return isLoading ? CustomLoadingDialog() : AlertDialog(
       elevation: 12,
       scrollable: true,
       //contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 100),
@@ -262,7 +262,7 @@ class _EditPlaceDialogState extends State<EditPlaceDialog> {
             borderRadius: BorderRadius.circular(10.0),
             //side: BorderSide(color: Colors.red)
           ),
-          child: new Text(t.text("delete").toUpperCase()),
+          child: new Text(t.text("delete")),
           color: Colors.red,
           onPressed: () {
             if(textEditingControllerDelete.text == t.text("yes")) {

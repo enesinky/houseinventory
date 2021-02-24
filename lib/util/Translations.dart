@@ -21,12 +21,13 @@ class Translations {
     if (arguments == null || arguments.length == 0) {
       return _localizedValues != null ? (_localizedValues[key] ?? '** $key not found') : '';
     }
+    var str = _localizedValues != null ? (_localizedValues[key] ?? '** $key not found') : '';
     arguments.forEach((argumentKey, value) {
       if(_localizedValues != null && _localizedValues[key] != null) {
-        _localizedValues[key] = _localizedValues[key].replaceAll("\$$argumentKey", value.toString());
+       str = str.replaceAll("\$$argumentKey", value.toString());
       }
     });
-    return _localizedValues[key];
+    return str;
 
   }
 

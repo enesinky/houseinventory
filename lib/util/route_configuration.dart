@@ -1,7 +1,6 @@
 import 'package:houseinventory/pages/account/account_view.dart';
 import 'package:houseinventory/pages/dashboard/dashboard.dart';
 import 'package:houseinventory/pages/inventory/inventory_view.dart';
-import 'package:houseinventory/pages/inventory/item_view.dart';
 import 'package:houseinventory/pages/inventory/location_view.dart';
 import 'package:houseinventory/pages/scan/image_classification.dart';
 import 'package:houseinventory/pages/search/search.dart';
@@ -21,10 +20,10 @@ class RouteConfiguration {
       r'^\/Location\/([\0-9]+)$',
           (context, List matches) => LocationViewPage(int.parse(matches[0])),
     ),
-    Path(
-      r'^\/Item\/([0-9]+)$',
-          (context, List matches) => ItemViewPage(int.parse(matches[0])),
-    ),
+    // Path(
+    //   r'^\/Item\/([0-9]+)$',
+    //       (context, List matches) => ItemViewPage(int.parse(matches[0])),
+    // ),
     Path(
       r'^' + StartPage.route,
           (context, match) => StartPage(),

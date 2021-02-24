@@ -3,8 +3,10 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:houseinventory/model/item.dart';
 import 'package:houseinventory/pages/inventory/inventory_view.dart';
+import 'package:houseinventory/util/Translations.dart';
 import 'package:houseinventory/widgets/dialog_add_item.dart';
 import 'package:houseinventory/widgets/sort_box.dart';
+import '../../application.dart';
 import '../../widgets/appbar.dart';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
@@ -34,7 +36,6 @@ class _LocationViewPageState extends State<LocationViewPage> {
   String locationName = "";
   String appBarText = "";
 
-
   @override
   void initState() {
     super.initState();
@@ -48,6 +49,7 @@ class _LocationViewPageState extends State<LocationViewPage> {
   }
 
   Future<void> _getItems() async {
+    var t = Translations.of(APPLIC.mainContext);
     try {
       http.Response response = await http
           .post(
@@ -99,26 +101,28 @@ class _LocationViewPageState extends State<LocationViewPage> {
               isLoading = false;
             });
           }
-
         } else {
-          _requestError('Request Error.');
+          _showSnackBar(t.text("snack_msg_req_failed"));
         }
       } else {
-        _requestError('Request Error.');
+        _showSnackBar(t.text("snack_msg_req_failed"));
       }
-    } on SocketException catch (e) {
-     _requestError('You are not connected to internet.');
+    } on SocketException catch(e) {
+      _showSnackBar(t.text("snack_msg_no_connection"));
       log(e.toString());
-    } on TimeoutException catch (e) {
-     _requestError('Server time out.');
+    }
+    on TimeoutException catch(e) {
+      _showSnackBar(t.text("snack_msg_timeout"));
       log(e.toString());
-    } catch (exception) {
-     _requestError('Network Error.');
+    }
+    catch (exception) {
+      _showSnackBar(t.text("snack_msg_network_err"));
       log(exception.toString());
     }
   }
 
   Future<void> _deleteItems() async {
+    var t = Translations.of(APPLIC.mainContext);
     try {
       setState(() {
         isLoading = true;
@@ -147,27 +151,32 @@ class _LocationViewPageState extends State<LocationViewPage> {
             InventoryViewPage.refreshWidget();
             _getItems();
           });
-          _deletionSuccess("("+iids.length.toString()+") "+(iids.length > 1 ? "items":"item")+" deleted.");
+          _deletionSuccess(t.text("snack_msg_items_deleted", {
+            "count": iids.length,
+            "item": (iids.length > 1 ? t.text("items_plural") : t.text("items_singular"))
+          }));
 
         } else {
-         _requestError('Request Error.');
+          _showSnackBar(t.text("snack_msg_req_failed"));
         }
       } else {
-        _requestError('Request Error.');
+        _showSnackBar(t.text("snack_msg_req_failed"));
       }
-    } on SocketException catch (e) {
-      _requestError('You are not connected to internet.');
+    } on SocketException catch(e) {
+      _showSnackBar(t.text("snack_msg_no_connection"));
       log(e.toString());
-    } on TimeoutException catch (e) {
-      _requestError('Server time out.');
+    }
+    on TimeoutException catch(e) {
+      _showSnackBar(t.text("snack_msg_timeout"));
       log(e.toString());
-    } catch (exception) {
-      _requestError('Network Error.');
+    }
+    catch (exception) {
+      _showSnackBar(t.text("snack_msg_network_err"));
       log(exception.toString());
     }
   }
 
-  _requestError(String text) {
+  _showSnackBar(String text) {
     final snackBar = SnackBar(
       content: Text(
         text,
@@ -262,25 +271,23 @@ class _LocationViewPageState extends State<LocationViewPage> {
   }
 
   confirmDeletionDialog (BuildContext ctx) {
+    var t = Translations.of(ctx);
     var c = loadedItemBoxes
         .where((element) => element.isSelected == true)
         .length;
-
     return AlertDialog(
-      title: Text('Delete Items?'),
-      content: Text('You are about to delete '
-          + c.toString() +
-          (c > 1 ? ' items' : ' item') + '.'),
+      title: Text(t.text("items_delete_label")),
+      content: Text(t.text("items_delete_msg", {"count": c})),
       actions: [
         FlatButton(
           child: Text(
-            'Cancel', style: TextStyle(color: Colors.blue,),),
+          t.text("cancel"), style: TextStyle(color: Colors.blue,),),
           onPressed: () {
             Navigator.of(ctx).pop();
           },
         ),
         FlatButton(
-          child: Text('Delete', style: TextStyle(
+          child: Text(t.text("delete"), style: TextStyle(
               color: Colors.red, fontWeight: FontWeight.bold),),
           onPressed: () {
             Navigator.of(ctx).pop();
@@ -293,6 +300,7 @@ class _LocationViewPageState extends State<LocationViewPage> {
 
   @override
   Widget build(BuildContext context) {
+    var t = Translations.of(context);
     return Scaffold(
         key: _scaffoldKey,
         appBar: CustomAppBar(appBarText),
@@ -307,7 +315,7 @@ class _LocationViewPageState extends State<LocationViewPage> {
                       return AddItemDialog(widget.placeId, context);
                     })));
           },
-          label: Text('Item', style: TextStyle(color: Colors.black54)),
+          label: Text(t.text("item_singular"), style: TextStyle(color: Colors.black54)),
           splashColor: Colors.blue,
           elevation: 16,
           icon: Icon(Icons.add_circle, color: Colors.black),
@@ -360,11 +368,11 @@ class _LocationViewPageState extends State<LocationViewPage> {
                         onSortChange: (int sort, int order) {
                           sortItems(sort, order);
                         },
-                        sortingOptions: ['Alphabetically','Date Modified','Date Created'],
+                        sortingOptions: [t.text("sort_alpha"), t.text("sort_date_modified"), t.text("sort_date_created")],
                         orderingOptions: [
-                          ["A to Z", "Z to A"],
-                          ["Oldest Items First", "Newest Items First"],
-                          ["Oldest Items First", "Newest Items First"]
+                          [t.text("order_a_to_z"), t.text("order_z_to_a")],
+                          [t.text("order_oldest_first"), t.text("order_newest_first")],
+                          [t.text("order_oldest_first"), t.text("order_newest_first")]
                         ],
                         sortMethodSharedPref: "itemsSortBy",
                         orderMethodSharedPref: "itemsOrderBy",
@@ -394,7 +402,7 @@ class _LocationViewPageState extends State<LocationViewPage> {
                             children: [
                               Icon(Icons.mood_bad_rounded, size: 36, color: Colors.amber),
                               Text(
-                                'No item yet.',
+                                t.text("items_empty_msg"),
                                 style: TextStyle(fontSize: 17),
                               ),
                             ],

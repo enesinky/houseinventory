@@ -119,7 +119,7 @@ class _SortDialogState extends State<SortDialog> {
       //contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 80),
       content: Container(
           alignment: Alignment.center,
-          width: MediaQuery.of(context).size.width * 0.90,
+          width: MediaQuery.of(context).size.width * 0.96,
           child: Column(
             children: [
               Row(

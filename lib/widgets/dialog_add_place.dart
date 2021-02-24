@@ -107,7 +107,7 @@ class _AddPlaceDialogState extends State<AddPlaceDialog> {
   @override
   Widget build(BuildContext context) {
     var t = Translations.of(context);
-    return isLoading ? CustomLoadingDialog.widget : AlertDialog(
+    return isLoading ? CustomLoadingDialog() : AlertDialog(
       elevation: 12,
       scrollable: true,
       //contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 100),

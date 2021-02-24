@@ -11,42 +11,36 @@ class SettingListItemBool extends StatefulWidget {
   SettingListItemBool(this.title, this.subtitle, this.sharedPrefParam, this.defaultValue);
 
   @override
-  _SettingListItemBoolState createState() => _SettingListItemBoolState(this.title, this.subtitle, this.sharedPrefParam, this.defaultValue);
+  _SettingListItemBoolState createState() => _SettingListItemBoolState();
 
 }
 
 class _SettingListItemBoolState extends State<SettingListItemBool> {
 
-  final String title;
-  final String subtitle;
-  final String sharedPrefParam;
-  final bool defaultValue;
-
-  _SettingListItemBoolState(this.title, this.subtitle, this.sharedPrefParam, this.defaultValue);
 
   @override
   Widget build(BuildContext context) {
     // set default value initially
-    if(sharedPrefs.getBool(sharedPrefParam) == null) sharedPrefs.setBool(sharedPrefParam, defaultValue);
+    if(sharedPrefs.getBool(widget.sharedPrefParam) == null) sharedPrefs.setBool(widget.sharedPrefParam, widget.defaultValue);
 
     return ListTile(
       title: Text(
-        title,
+        widget.title,
         style: TextStyle(fontSize: 14),
       ),
-      subtitle: subtitle != null ? Text(subtitle) : null,
+      subtitle: widget.subtitle != null ? Text(widget.subtitle) : null,
       trailing: Switch(
-      value: sharedPrefs.getBool(sharedPrefParam),
+      value: sharedPrefs.getBool(widget.sharedPrefParam),
       onChanged: (val) {
         setState(() {
-          sharedPrefs.setBool(sharedPrefParam, val);
+          sharedPrefs.setBool(widget.sharedPrefParam, val);
         });
       },
     ),
       onTap: () {
         setState(() {
-          bool setting = !sharedPrefs.getBool(sharedPrefParam);
-          sharedPrefs.setBool(sharedPrefParam, setting);
+          bool setting = !sharedPrefs.getBool(widget.sharedPrefParam);
+          sharedPrefs.setBool(widget.sharedPrefParam, setting);
         });
       },
     );

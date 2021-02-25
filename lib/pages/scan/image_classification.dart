@@ -73,7 +73,7 @@ class _ScanPageState extends State<ScanPage> {
   Future<String> getImage(ImageSource imageSource) async {
     final picker = ImagePicker();
     final pickedFile = await picker.getImage(source: imageSource);
-    return pickedFile.path;
+    return pickedFile != null ? pickedFile.path : null;
   }
 
   _showSnackBar(message, color) {
@@ -286,8 +286,10 @@ class _ScanPageState extends State<ScanPage> {
                           ),
                           onPressed: () async {
                             final String path = await getImage(ImageSource.camera);
-                            settings.path = path;
-                            _startRecognition();
+                            if(path != null) {
+                              settings.path = path;
+                              _startRecognition();
+                            }
                           }),
                     ),
                     Container(
@@ -305,8 +307,10 @@ class _ScanPageState extends State<ScanPage> {
                           ),
                           onPressed: () async {
                             final String path = await getImage(ImageSource.gallery);
-                            settings.path = path;
-                            _startRecognition();
+                            if(path != null) {
+                              settings.path = path;
+                              _startRecognition();
+                            }
                           }),
                     ),
                   ],

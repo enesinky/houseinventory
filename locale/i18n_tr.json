@@ -16,6 +16,27 @@
   "appbar_settings": "Ayarlar",
   "appbar_account": "Hesap Bilgisi",
 
+  "start_email": "Eposta Adresi",
+  "start_pass": "Parola",
+  "start_forgot_pw": "Parolamı Unuttum",
+  "start_btn_sign_in_email": "Eposta ile Giriş",
+  "start_btn_sign_huawei": "HUAWEI ID ile Giriş",
+  "start_register_text": "Henüz hesabınız yok mu?",
+  "start_register": "Kayıt Ol",
+  "start_or": "ya da",
+  "start_enter_name": "Adınızı Girin",
+  "start_enter_email": "Eposta Adresinizi Girin",
+  "start_enter_pass": "Parola Girin",
+  "start_sign_in_text": "Zaten hesabınız var mı?",
+  "start_sign_in": "Giriş Yap",
+  "start_btn_sign_up": "KAYIT OL",
+  "start_warning_name": "Lütfen adınızı girin.",
+  "start_warning_email": "Lütfen geçerli bir eposta adresi girin.",
+  "start_warning_pass": "Parolanız en az 6 karakterden oluşmalıdır.",
+  "start_warning_sign_pass": "Lütfen parolanızı girin.",
+  "start_reset_sent": "Talimatları içeren bir eposta tarafınıza iletildi.",
+  "start_reset_pass": "Parolayı Sıfırla",
+
   "dashboard_util": "Envanter Kullanımı",
   "dashboard_empty": "Boş",
   "dashboard_perf": "Eklenen Nesne Sayısı",
@@ -86,6 +107,8 @@
   "done": "Onayla",
   "loading": "Yükleniyor",
   "processing": "İşleniyor",
+  "try_again": "Tekrar Deneyin",
+  "go_back": "Geri Dön",
 
   "sort": "Sırala",
   "sort_by": "Ölçüt:",
@@ -110,5 +133,10 @@
   "snack_msg_timeout": "Sunucu Hatası: İletişim esnasında hata meydana geldi..",
   "snack_msg_inventory_updated": "Envanteriniz güncellendi.",
   "snack_msg_place_delete": "$name envanterden silindi.",
-  "snack_msg_items_deleted": "$count adet $item silindi."
+  "snack_msg_items_deleted": "$count adet $item silindi.",
+  "err_msg_sth_wrong": "Bir şeyler ters gitti!",
+  "err_email_in_use": "Bu eposta adresi kullanılmaktadır. Lütfen farklı bir eposta adresi seçin.",
+  "err_auth": "Eposta ve Parola eşleşmedi. Lütfen bilgilerinizi kontrol edin.",
+  "err_auth_title": "Yetkilendirme Hatası"
+
 }

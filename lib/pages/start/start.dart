@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:houseinventory/pages/home/tabs.dart';
+import 'package:houseinventory/util/Translations.dart';
 import 'package:houseinventory/util/contants.dart';
 import 'package:houseinventory/util/encrypter.dart';
 import 'package:houseinventory/util/huawei_account.dart';
 import 'package:houseinventory/util/shared_prefs.dart';
 import 'package:houseinventory/util/validator.dart';
+import 'package:houseinventory/widgets/start_page_widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,43 +14,6 @@ import 'package:houseinventory/pages/start/forgot_password.dart';
 
 class StartPage extends StatefulWidget {
   static const String route = '/Start';
-
-  static Widget headerWidget = Container(
-    margin: EdgeInsets.only(top: 100, bottom: 60),
-    child: Column(
-      children: [
-        Icon(Icons.home, color: Colors.amber, size: 40,),
-        Text('House.Inventory'.toUpperCase(), style: TextStyle(
-            fontSize: 30,
-            color: Colors.amber
-        ),),
-      ],
-    ),
-  );
-  static Widget divider = Container(
-    margin: EdgeInsets.symmetric(vertical: 6),
-    child: Row(children: <Widget>[
-      Expanded(
-        child: new Container(
-            margin: const EdgeInsets.only(left: 10.0, right: 20.0),
-            child: Divider(
-              color: Colors.white24,
-              height: 36,
-              thickness: 0.7,
-            )),
-      ),
-      Text("or", style: TextStyle(color: Colors.white24, fontSize: 14),),
-      Expanded(
-        child: new Container(
-            margin: const EdgeInsets.only(left: 20.0, right: 10.0),
-            child: Divider(
-              color: Colors.white24,
-              height: 36,
-              thickness: 0.7,
-            )),
-      ),
-    ]),
-  );
 
   @override
   _StartPageState createState() => _StartPageState();
@@ -107,15 +72,16 @@ class _StartPageState extends State<StartPage> {
       if (response != null && response.statusCode == 200) {
         var json = jsonDecode(response.body);
         print(json);
-        json['result'] == true ? loginProcedure(emailHashedEncoded, passwordHashedEncoded) : _promptError('Signup Error', 'This email address is already in use. Please sign up with a different email address.', 'OK');
+        json['result'] == true ? loginProcedure(emailHashedEncoded, passwordHashedEncoded) : _promptError(Translations.of(context).text("err_msg_sth_wrong"), Translations.of(context).text("err_email_in_use"), Translations.of(context).text("ok"));
       }
       else {
-        _promptError('Server Error', 'Problem occured while communicating with server.', 'Try Again');
+        _promptError(Translations.of(context).text("err_msg_sth_wrong"), Translations.of(context).text("snack_msg_network_err"), Translations.of(context).text("try_again"));
       }
     } catch (exception) {
-      _promptError('Network Error', 'Problem occured while communicating with server.', 'Try Again');
+      _promptError(Translations.of(context).text("err_msg_sth_wrong"), Translations.of(context).text("snack_msg_network_err"), Translations.of(context).text("try_again"));
     }
   }
+
   requestSignIn() async {
     try {
       var enc = Encrypter();
@@ -133,13 +99,13 @@ class _StartPageState extends State<StartPage> {
       ).timeout(Duration(seconds: Constants.API_TIME_OUT_LIMIT));
       if(response != null && response.statusCode == 200) {
         var json = jsonDecode(response.body);
-        (json['result'] == true) ? loginProcedure(emailHashedEncoded, passwordHashedEncoded) : _promptError('Authentication Error', 'Email and Password do not match. Please check your credentials.', 'OK');
+        (json['result'] == true) ? loginProcedure(emailHashedEncoded, passwordHashedEncoded) : _promptError(Translations.of(context).text("err_auth_title"), Translations.of(context).text("err_auth"), Translations.of(context).text("ok"));
       }
       else {
-        _promptError('Server Error', 'Problem occured while communicating with server.', 'Try Again');
+        _promptError(Translations.of(context).text("err_msg_sth_wrong"), Translations.of(context).text("snack_msg_network_err"), Translations.of(context).text("try_again"));
       }
     } catch (exception) {
-      _promptError('Network Error', 'Problem occured while communicating with server.', 'Try Again');
+      _promptError(Translations.of(context).text("err_msg_sth_wrong"), Translations.of(context).text("snack_msg_network_err"), Translations.of(context).text("try_again"));
     }
   }
 
@@ -149,6 +115,7 @@ class _StartPageState extends State<StartPage> {
     Navigator.of(context).popUntil((route) => route.isFirst);
     Navigator.pushReplacementNamed(context, TabsPage.route);
   }
+
   Future<void> _promptError(String title, String body, String buttonText) async {
     setState(() {
       isLoading = !isLoading;
@@ -184,32 +151,7 @@ class _StartPageState extends State<StartPage> {
 
   Widget build(BuildContext context) {
 
-    var huaweiButton = Container(
-      margin: EdgeInsets.symmetric(horizontal: 0, vertical: 4),
-      height: 36,
-      child: FlatButton(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          //side: BorderSide(color: Colors.red)
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/images/hw_24x24_logo.png', width: 26, height: 26,),
-            SizedBox(width: 10,),
-            Text('Sign In with HUAWEI ID', style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-            ),),
-            //SizedBox(width: 0,),
-          ],
-        ),
-        color: Color(0xffef484b),
-        onPressed: () {
-          HuaweiAccount(context).signIn();
-        },
-      ),
-    );
+    var t = Translations.of(context);
     var signInPage = Container(
       alignment: Alignment.center,
       margin: EdgeInsets.symmetric(horizontal: 30, vertical: 0),
@@ -226,7 +168,7 @@ class _StartPageState extends State<StartPage> {
                   key: _signInFormKey,
                   child: Column(
                       children: <Widget> [
-                        StartPage.headerWidget,
+                        Header(),
                         TextFormField(
                           textCapitalization: TextCapitalization.words,
                           textAlignVertical: TextAlignVertical.center,
@@ -242,7 +184,7 @@ class _StartPageState extends State<StartPage> {
                             if(Validator.isValidEmail(input.toString())) {
                               return null;
                             } else {
-                              return "Please enter a valid email.";
+                              return t.text("start_warning_email");
                             }
                           },
                           onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
@@ -259,7 +201,7 @@ class _StartPageState extends State<StartPage> {
                               enabledBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(color: Colors.amber, width: 2),
                               ),
-                              hintText: "Email Address",
+                              hintText: t.text("start_email"),
                               hintStyle: TextStyle(color: Colors.white54)
                           ),
                         ),
@@ -279,7 +221,7 @@ class _StartPageState extends State<StartPage> {
                             if(input.toString().length >= 6) {
                               return null;
                             } else {
-                              return "Please enter your password.";
+                              return t.text("start_warning_sign_pass");
                             }
                           },
                           cursorColor: Colors.amber,
@@ -295,7 +237,7 @@ class _StartPageState extends State<StartPage> {
                               enabledBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(color: Colors.amber, width: 2),
                               ),
-                              hintText: "Password",
+                              hintText: t.text("start_pass"),
                               hintStyle: TextStyle(color: Colors.white54)
                           ),
                         ),
@@ -312,7 +254,7 @@ class _StartPageState extends State<StartPage> {
                                 child: Container(
                                   margin: EdgeInsets.symmetric(vertical: 12),
                                   padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                                  child: Text('Forgot Password', style: TextStyle(
+                                  child: Text(t.text("start_forgot_pw"), style: TextStyle(
                                     color: Colors.white70,
                                     fontSize: 13,
                                   )),
@@ -333,7 +275,7 @@ class _StartPageState extends State<StartPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 isLoading ? SizedBox() : Icon(Icons.email, color: Colors.white70.withOpacity(0.4), size: 22),
-                                isLoading ? SizedBox(height:22, width:22,child: CircularProgressIndicator(strokeWidth: 4,)) : Text('Sign in with Email', style: TextStyle(
+                                isLoading ? SizedBox(height:22, width:22,child: CircularProgressIndicator(strokeWidth: 4,)) : Text(t.text("start_btn_sign_in_email"), style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 16,
                                 ),),
@@ -346,19 +288,22 @@ class _StartPageState extends State<StartPage> {
                                 setState(() {
                                   isLoading = !isLoading;
                                 });
+                                FocusScope.of(context).unfocus();
                                 requestSignIn();
                               }
                             },
                           ),
                         ),
-                        StartPage.divider,
-                        huaweiButton,
+                        CustomDivider(),
+                        HuaweiButton(onPressed: () {
+                          HuaweiAccount(context).signIn();
+                        },),
                         Container(
                           margin: EdgeInsets.symmetric(horizontal: 10, vertical: 24),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Don\'t have an account yet?', style: TextStyle(
+                              Text(t.text("start_register_text"), style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
                               ),),
@@ -371,7 +316,7 @@ class _StartPageState extends State<StartPage> {
                                 splashColor: Colors.amber,
                                 child: Container(
                                   padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                                  child: Text('Register', style: TextStyle(
+                                  child: Text(t.text("start_register"), style: TextStyle(
                                     color: Colors.white70,
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -407,7 +352,7 @@ class _StartPageState extends State<StartPage> {
                   key: _signUpFormKey,
                   child: Column(
                       children: <Widget> [
-                        StartPage.headerWidget,
+                        Header(),
                         TextFormField(
                           textCapitalization: TextCapitalization.words,
                           textAlignVertical: TextAlignVertical.center,
@@ -423,7 +368,7 @@ class _StartPageState extends State<StartPage> {
                             if(input.toString().length >= 3) {
                               return null;
                             } else {
-                              return "Please enter your name.";
+                              return t.text("start_warning_name");
                             }
                           },
                           onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
@@ -440,7 +385,7 @@ class _StartPageState extends State<StartPage> {
                               enabledBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(color: Colors.amber, width: 2),
                               ),
-                              hintText: "Enter your Name",
+                              hintText: t.text("start_enter_name"),
                               hintStyle: TextStyle(color: Colors.white54)
                           ),
                         ),
@@ -460,7 +405,7 @@ class _StartPageState extends State<StartPage> {
                             if(Validator.isValidEmail(input.toString())) {
                               return null;
                             } else {
-                              return "Please enter a valid email.";
+                              return t.text("start_warning_email");
                             }
                           },
                           onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
@@ -477,7 +422,7 @@ class _StartPageState extends State<StartPage> {
                               enabledBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(color: Colors.amber, width: 2),
                               ),
-                              hintText: "Enter your Email",
+                              hintText: t.text("start_enter_email"),
                               hintStyle: TextStyle(color: Colors.white54)
                           ),
                         ),
@@ -497,7 +442,7 @@ class _StartPageState extends State<StartPage> {
                             if(input.toString().length >= 6) {
                               return null;
                             } else {
-                              return "Your password must contain at least 6 characters.";
+                              return t.text("start_warning_pass");
                             }
                           },
                           cursorColor: Colors.amber,
@@ -513,7 +458,7 @@ class _StartPageState extends State<StartPage> {
                               enabledBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(color: Colors.amber, width: 2),
                               ),
-                              hintText: "Enter your a Password",
+                              hintText: t.text("start_enter_pass"),
                               hintStyle: TextStyle(color: Colors.white54)
                           ),
                         ),
@@ -522,7 +467,7 @@ class _StartPageState extends State<StartPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Already have an account?', style: TextStyle(
+                              Text(t.text("start_sign_in_text"), style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
                               ),),
@@ -535,7 +480,7 @@ class _StartPageState extends State<StartPage> {
                                 splashColor: Colors.amber,
                                 child: Container(
                                   padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                                  child: Text('Sign In', style: TextStyle(
+                                  child: Text(t.text("start_sign_in"), style: TextStyle(
                                     color: Colors.white70,
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -558,7 +503,7 @@ class _StartPageState extends State<StartPage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                isLoading ? SizedBox(height:22, width:22,child: CircularProgressIndicator(strokeWidth: 4,)) : Text('Sign Up'.toUpperCase(), style: TextStyle(
+                                isLoading ? SizedBox(height:22, width:22,child: CircularProgressIndicator(strokeWidth: 4,)) : Text(t.text("start_btn_sign_up"), style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 16,
                                 ),),
@@ -570,13 +515,16 @@ class _StartPageState extends State<StartPage> {
                                   setState(() {
                                     isLoading = !isLoading;
                                   });
+                                  FocusScope.of(context).unfocus();
                                   requestSignUp();
                               }
                             },
                           ),
                         ),
-                        StartPage.divider,
-                        huaweiButton,
+                        CustomDivider(),
+                        HuaweiButton(onPressed: () {
+                          HuaweiAccount(context).signIn();
+                        },),
                       ]),
                 ),
               ),

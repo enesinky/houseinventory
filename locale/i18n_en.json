@@ -16,6 +16,27 @@
   "appbar_settings": "Settings",
   "appbar_account": "Account Info",
 
+  "start_email": "Email Address",
+  "start_pass": "Password",
+  "start_forgot_pw": "Forgot Password",
+  "start_btn_sign_in_email": "Sign in with Email",
+  "start_btn_sign_huawei": "Sign in with Huawei ID",
+  "start_register_text": "Don't have an account yet?",
+  "start_register": "Register",
+  "start_or": "or",
+  "start_enter_name": "Enter your Name",
+  "start_enter_email": "Enter your Email",
+  "start_enter_pass": "Enter a Password",
+  "start_sign_in_text": "Already have an account?",
+  "start_sign_in": "Sign In",
+  "start_btn_sign_up": "SIGN UP",
+  "start_warning_name": "Please enter your name.",
+  "start_warning_email": "Please enter a valid email address.",
+  "start_warning_pass": "Your password must contain at least 6 characters.",
+  "start_warning_sign_pass": "Please enter your password.",
+  "start_reset_sent": "An email with instructions was sent.",
+  "start_reset_pass": "Reset Password",
+
   "dashboard_util": "Inventory Utilization",
   "dashboard_empty": "Empty",
   "dashboard_perf": "Added Items Per Month",
@@ -86,6 +107,8 @@
   "done": "Done",
   "loading": "Loading",
   "processing": "Processing",
+  "try_again": "Try Again",
+  "go_back": "Go Back",
 
   "sort": "Sort",
   "sort_by": "Sort By:",
@@ -110,6 +133,11 @@
   "snack_msg_timeout": "Server Error: Problem occured while communicating with server.",
   "snack_msg_inventory_updated": "Your inventory has been updated.",
   "snack_msg_place_delete": "$name deleted from inventory.",
-  "snack_msg_items_deleted": "$count $item deleted."
+  "snack_msg_items_deleted": "$count $item deleted.",
+  "err_msg_sth_wrong": "Something went wrong!",
+  "err_email_in_use": "This email address is already in use. Please sign up with a different email address.",
+  "err_auth": "Email and Password do not match. Please check your credentials.",
+  "err_auth_title": "Authentication Error"
+
 
 }
